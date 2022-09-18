@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createRoomHandler = exports.getRoomsHandler = void 0;
 const client_1 = require("@prisma/client");
+const express_validator_1 = require("express-validator");
 const prisma = new client_1.PrismaClient();
 const getRoomsHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const roomsQuery = prisma.room;
@@ -38,6 +39,12 @@ const getRoomsHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.getRoomsHandler = getRoomsHandler;
 const createRoomHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const validationErrorArr = (0, express_validator_1.validationResult)(req);
+    if (!validationErrorArr.isEmpty()) {
+        const error = new Error("Something went wrong in VALIDATION");
+        error.status = 422;
+        return next(error);
+    }
     try {
         const { name } = req.body;
         const doesRoomExist = (yield prisma.room.findMany({ where: { name } })).find((el) => el.name === name);

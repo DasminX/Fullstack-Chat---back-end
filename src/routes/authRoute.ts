@@ -1,13 +1,13 @@
 import { Router } from "express";
-import { body } from "express-validator";
+import { check } from "express-validator";
 import { loginHandler, registerHandler } from "../controllers/authController";
 
 const router = Router();
 
 const authValidator = [
-  body("email").exists().trim().isEmail(),
-  body("password")
-    .exists()
+  check("login").trim().isLength({ min: 8, max: 16 }),
+  check("password")
+    .isLength({ min: 8 })
     .isStrongPassword({ minLength: 8, minUppercase: 1, minNumbers: 1 }),
 ];
 

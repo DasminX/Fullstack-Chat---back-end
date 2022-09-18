@@ -11,8 +11,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.changeLogoHandler = exports.changeNameHandler = void 0;
 const client_1 = require("@prisma/client");
+const express_validator_1 = require("express-validator");
 const prisma = new client_1.PrismaClient();
 const changeNameHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const validationErrorArr = (0, express_validator_1.validationResult)(req);
+    if (!validationErrorArr.isEmpty()) {
+        const error = new Error("Something went wrong in VALIDATION");
+        error.status = 422;
+        return next(error);
+    }
     try {
         const { changedName } = req.body;
         const user = yield prisma.user.findFirst({

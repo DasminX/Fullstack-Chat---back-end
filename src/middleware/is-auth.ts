@@ -36,5 +36,7 @@ export const isAuthMiddleware = (
   } else {
     req.userID = decodedToken.userID;
   }
+
+  console.log("przechodzi przez mdlwr");
   next();
 };

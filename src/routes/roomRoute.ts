@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { body } from "express-validator";
+import { check } from "express-validator";
 import {
   createRoomHandler,
   getRoomsHandler,
 } from "../controllers/roomController";
 import { isAuthMiddleware } from "../middleware/is-auth";
 
-const createRoomValidator = body("name").isLength({ min: 3, max: 20 });
+const createRoomValidator = check("name").isLength({ min: 3, max: 20 });
 
 const router = Router();
 

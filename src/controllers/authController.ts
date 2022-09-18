@@ -2,9 +2,10 @@ import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { validationResult } from "express-validator";
 
 type RequestAuthBodyType = {
-  email: string;
+  login: string;
   password: string;
 };
 
@@ -15,15 +16,26 @@ export const registerHandler = async (
   res: Response,
   next: NextFunction
 ) => {
+  const validationErrorArr = validationResult(req);
+  if (!validationErrorArr.isEmpty()) {
+    const error: any = new Error(
+      "Login has to be at least 8 characters long and password should contain of 8 characters (at least 1 uppercase, at least 1 number)"
+    );
+    error.status = 422;
+    return next(error);
+  }
+
   try {
-    const { email, password } = req.body as unknown as RequestAuthBodyType;
+    const { login, password } = req.body as unknown as RequestAuthBodyType;
+
+    console.log(login, password);
 
     const foundUser = await prisma.user.findFirst({
-      where: { email },
+      where: { login },
     });
 
     if (foundUser) {
-      const error: any = new Error("User with that e-mail already exists!");
+      const error: any = new Error("User with that login already exists!");
       error.status = 400;
       return next(error);
     }
@@ -32,7 +44,7 @@ export const registerHandler = async (
 
     const user = await prisma.user.create({
       data: {
-        email,
+        login,
         hashedPassword,
         username: `User${Math.random().toString().slice(2, 11)}`,
         userAvatarImgUrl: "https://www.w3schools.com/howto/img_avatar.png",
@@ -60,11 +72,12 @@ export const loginHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password } = req.body as unknown as RequestAuthBodyType;
+    const { login, password } = req.body as unknown as RequestAuthBodyType;
 
-    const user = await prisma.user.findFirst({ where: { email } });
+    const user = await prisma.user.findFirst({ where: { login } });
+
     if (!user) {
-      const error: any = new Error("User with that e-mail not found!");
+      const error: any = new Error("User with that login not found!");
       error.status = 401;
       return next(error);
     }
@@ -83,14 +96,14 @@ export const loginHandler = async (
     }
 
     const token = jwt.sign(
-      { email: user.email, userID: user.userID },
+      { login: user.login, userID: user.userID },
       "kopamatakawasupersecretkeyhaha",
       { expiresIn: "1h" }
     );
 
     res.status(200).json({
       status: "ok",
-      data: { message: "Logged in successfully!", token },
+      data: { message: "Logged in successfully!", token, user },
     });
   } catch (e) {
     next(e);

@@ -16,22 +16,30 @@ exports.loginHandler = exports.registerHandler = void 0;
 const client_1 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const express_validator_1 = require("express-validator");
 const prisma = new client_1.PrismaClient();
 const registerHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const validationErrorArr = (0, express_validator_1.validationResult)(req);
+    if (!validationErrorArr.isEmpty()) {
+        const error = new Error("Login has to be at least 8 characters long and password should contain of 8 characters (at least 1 uppercase, at least 1 number)");
+        error.status = 422;
+        return next(error);
+    }
     try {
-        const { email, password } = req.body;
+        const { login, password } = req.body;
+        console.log(login, password);
         const foundUser = yield prisma.user.findFirst({
-            where: { email },
+            where: { login },
         });
         if (foundUser) {
-            const error = new Error("User with that e-mail already exists!");
+            const error = new Error("User with that login already exists!");
             error.status = 400;
             return next(error);
         }
         const hashedPassword = yield bcryptjs_1.default.hash(password, 14);
         const user = yield prisma.user.create({
             data: {
-                email,
+                login,
                 hashedPassword,
                 username: `User${Math.random().toString().slice(2, 11)}`,
                 userAvatarImgUrl: "https://www.w3schools.com/howto/img_avatar.png",
@@ -54,10 +62,10 @@ const registerHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 exports.registerHandler = registerHandler;
 const loginHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, password } = req.body;
-        const user = yield prisma.user.findFirst({ where: { email } });
+        const { login, password } = req.body;
+        const user = yield prisma.user.findFirst({ where: { login } });
         if (!user) {
-            const error = new Error("User with that e-mail not found!");
+            const error = new Error("User with that login not found!");
             error.status = 401;
             return next(error);
         }
@@ -67,10 +75,10 @@ const loginHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             error.status = 400;
             return next(error);
         }
-        const token = jsonwebtoken_1.default.sign({ email: user.email, userID: user.userID }, "kopamatakawasupersecretkeyhaha", { expiresIn: "1h" });
+        const token = jsonwebtoken_1.default.sign({ login: user.login, userID: user.userID }, "kopamatakawasupersecretkeyhaha", { expiresIn: "1h" });
         res.status(200).json({
             status: "ok",
-            data: { message: "Logged in successfully!", token },
+            data: { message: "Logged in successfully!", token, user },
         });
     }
     catch (e) {

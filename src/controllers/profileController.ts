@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
+import { validationResult } from "express-validator";
 
 const prisma = new PrismaClient();
 
@@ -13,6 +14,13 @@ export const changeNameHandler = async (
   res: Response,
   next: NextFunction
 ) => {
+  const validationErrorArr = validationResult(req);
+  if (!validationErrorArr.isEmpty()) {
+    const error: any = new Error("Something went wrong in VALIDATION");
+    error.status = 422;
+    return next(error);
+  }
+
   try {
     const { changedName } = req.body as unknown as RequestProfileBodyType;
 

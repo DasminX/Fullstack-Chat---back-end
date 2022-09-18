@@ -4,13 +4,13 @@ import {
   changeNameHandler,
   changeLogoHandler,
 } from "../controllers/profileController";
-import { body } from "express-validator";
+import { check } from "express-validator";
 
-const changeNameValidator = body("changedName")
+const changeNameValidator = check("changedName")
   .exists()
   .isLength({ min: 3, max: 12 });
 
-const changeLogoValidator = body("changedName").exists();
+const changeLogoValidator = check("changedName").exists();
 
 const router = Router();
 
