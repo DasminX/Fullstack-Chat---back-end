@@ -34,14 +34,17 @@ export const changeNameHandler = async (
       return next(error);
     }
 
-    await prisma.user.updateMany({
+    const updatedUser = await prisma.user.update({
       data: { username: changedName },
       where: { userID: req.userID },
     });
 
     res.status(201).json({
       status: "ok",
-      data: { message: "Username updated successfully!" },
+      data: {
+        message: "Username updated successfully!",
+        username: updatedUser.username,
+      },
     });
   } catch (err) {
     const error: any = new Error("Something went wrong! Try again later.");

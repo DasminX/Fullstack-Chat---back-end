@@ -30,13 +30,16 @@ const changeNameHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, 
             error.status = 400;
             return next(error);
         }
-        yield prisma.user.updateMany({
+        const updatedUser = yield prisma.user.update({
             data: { username: changedName },
             where: { userID: req.userID },
         });
         res.status(201).json({
             status: "ok",
-            data: { message: "Username updated successfully!" },
+            data: {
+                message: "Username updated successfully!",
+                username: updatedUser.username,
+            },
         });
     }
     catch (err) {

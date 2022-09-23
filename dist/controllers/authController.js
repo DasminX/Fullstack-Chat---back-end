@@ -41,7 +41,7 @@ const registerHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             data: {
                 login,
                 hashedPassword,
-                username: `User${Math.random().toString().slice(2, 11)}`,
+                username: `User${Math.random().toString().slice(2, 10)}`,
                 userAvatarImgUrl: "https://www.w3schools.com/howto/img_avatar.png",
             },
         });

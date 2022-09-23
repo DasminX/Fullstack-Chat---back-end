@@ -46,7 +46,7 @@ export const registerHandler = async (
       data: {
         login,
         hashedPassword,
-        username: `User${Math.random().toString().slice(2, 11)}`,
+        username: `User${Math.random().toString().slice(2, 10)}`,
         userAvatarImgUrl: "https://www.w3schools.com/howto/img_avatar.png",
       },
     });

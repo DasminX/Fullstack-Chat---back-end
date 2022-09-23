@@ -12,6 +12,32 @@ app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// socket.io
+// socket.io
+// socket.io
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "OPTIONS"],
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log(`user connected`);
+
+  socket.on("send-message", (data) => {
+    socket.broadcast.emit("receive-message", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+});
+
+// api
+// api
+// api
 app.use((_req: Request, res: Response, next: NextFunction) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -22,20 +48,9 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-const server = http.createServer(app);
-
 app.use("/api/auth", authRouter);
 app.use("/api/rooms", roomRouter);
 app.use("/api/profile", profileRouter);
-
-// const io = new Server(server);
-/* io.on("connection", (socket) => {
-  console.log(`user connected`);
-
-  socket.on("disconnect", () => {
-    console.log("user disconnected");
-  });
-}); */
 
 app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
   const { status, message } = error;
