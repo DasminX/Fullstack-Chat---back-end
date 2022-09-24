@@ -11,6 +11,8 @@ router.route("/").get(is_auth_1.isAuthMiddleware, roomController_1.getRoomsHandl
 router
     .route("/create")
     .post(is_auth_1.isAuthMiddleware, createRoomValidator, roomController_1.createRoomHandler);
+/* ROUTING NA WCHODZENIE DO POKOJU */
+router.route("/join/:roomID").get(is_auth_1.isAuthMiddleware, roomController_1.enterRoomHandler);
 //SPRAWDZIC CZY NA PEWNO DOBRZE WSZYSTKO LOGIKA
 // SPRAWDZIC CZY NA PEWNO TOKEN DOBRZE DZIALA I DODAC GO DO MDWR
 exports.default = router;

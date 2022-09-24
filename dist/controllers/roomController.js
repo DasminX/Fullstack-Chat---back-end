@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createRoomHandler = exports.getRoomsHandler = void 0;
+exports.enterRoomHandler = exports.createRoomHandler = exports.getRoomsHandler = void 0;
 const client_1 = require("@prisma/client");
 const express_validator_1 = require("express-validator");
 const prisma = new client_1.PrismaClient();
@@ -46,14 +46,16 @@ const createRoomHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         return next(error);
     }
     try {
-        const { name } = req.body;
+        const { name, logoURL, isPrivate, roomPassword } = req.body;
         const doesRoomExist = (yield prisma.room.findMany({ where: { name } })).find((el) => el.name === name);
         if (doesRoomExist) {
             const error = new Error("Room with that name already exists! Choose different one.");
             error.status = 400;
             return next(error);
         }
-        const room = yield prisma.room.create({ data: { name } });
+        const room = yield prisma.room.create({
+            data: { name, logoURL, isPrivate, roomPassword },
+        });
         return res.status(200).json({
             status: "ok",
             data: { message: "Room successfully created!", room },
@@ -66,3 +68,43 @@ const createRoomHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.createRoomHandler = createRoomHandler;
+const enterRoomHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { roomID } = req.params;
+        // if (!roomID) return 'errorhandling';
+        const user = yield prisma.user.findFirst({
+            where: { userID: req.userID },
+        });
+        if (!user)
+            return;
+        const room = yield prisma.room.findFirst({
+            where: { roomID },
+        });
+        console.log(room);
+        /* TO BE CONTINUED, NAJPIERW DODAC DODAWANIE ROOMÓW OD RAZU Z DODANIEM DO BAZY */
+        if (!room)
+            return;
+        let updatedActiveUsersIDs = [];
+        if (room.activeUsersIDs && Array.isArray(room.activeUsersIDs)) {
+            updatedActiveUsersIDs = [...room.activeUsersIDs, user.userID];
+        }
+        else {
+            updatedActiveUsersIDs.push(user.userID);
+        }
+        yield prisma.room.update({
+            where: { roomID: room.roomID },
+            data: { activeUsersIDs: updatedActiveUsersIDs, User: { set: user } },
+        });
+        res.status(200).json({
+            status: "ok",
+            data: {
+                message: "Joined room successfully!",
+                allActiveUsers: updatedActiveUsersIDs.length,
+            },
+        });
+    }
+    catch (err) {
+        console.log(err);
+    }
+});
+exports.enterRoomHandler = enterRoomHandler;

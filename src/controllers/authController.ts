@@ -28,8 +28,6 @@ export const registerHandler = async (
   try {
     const { login, password } = req.body as unknown as RequestAuthBodyType;
 
-    console.log(login, password);
-
     const foundUser = await prisma.user.findFirst({
       where: { login },
     });

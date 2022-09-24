@@ -27,7 +27,6 @@ const registerHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     }
     try {
         const { login, password } = req.body;
-        console.log(login, password);
         const foundUser = yield prisma.user.findFirst({
             where: { login },
         });

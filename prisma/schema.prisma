@@ -25,9 +25,13 @@ model User {
 model Room {
   roomID         String    @id @default(cuid())
   name           String    @unique
-  activeUsersIDs User[]
+  activeUsersIDs String[]
+  logoURL        String
+  isPrivate      Boolean
+  roomPassword   String
   createdAt      DateTime  @default(now())
   roomMsgArr     Message[]
+  User           User[]
 }
 
 model Message {
