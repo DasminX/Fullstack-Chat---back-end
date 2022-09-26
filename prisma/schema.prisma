@@ -11,35 +11,35 @@ datasource db {
 }
 
 model User {
-  userID           String    @id @default(uuid())
+  id               String    @id @default(uuid())
   login            String    @unique
   username         String
   hashedPassword   String
   userAvatarImgUrl String
   createdAt        DateTime  @default(now())
-  Room             Room?     @relation(fields: [activeRoomID], references: [roomID])
+  Room             Room?     @relation(fields: [activeRoomID], references: [id])
   activeRoomID     String?
   Message          Message[]
 }
 
 model Room {
-  roomID         String    @id @default(cuid())
+  id             String    @id @default(cuid())
   name           String    @unique
-  activeUsersIDs String[]
   logoURL        String
   isPrivate      Boolean
   roomPassword   String
   createdAt      DateTime  @default(now())
-  roomMsgArr     Message[]
   User           User[]
+  roomMsgArr     Message[]
+  // msgs in room array???
 }
 
 model Message {
-  messageID    String   @id @default(cuid())
+  id    String   @id @default(cuid())
   textContent  String   @db.VarChar(255)
-  sendByUser   User     @relation(fields: [sendByUserID], references: [userID])
+  sendByUser   User     @relation(fields: [sendByUserID], references: [id])
   sendByUserID String
   sendDate     DateTime @default(now())
-  sendInRoom   Room     @relation(fields: [msgInRoomID], references: [roomID])
-  msgInRoomID  String
+  sendInRoom   Room     @relation(fields: [sendInRoomId], references: [id])
+  sendInRoomId  String
 }

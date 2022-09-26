@@ -94,7 +94,7 @@ export const loginHandler = async (
     }
 
     const token = jwt.sign(
-      { login: user.login, userID: user.userID },
+      { login: user.login, id: user.id },
       "kopamatakawasupersecretkeyhaha",
       { expiresIn: "1h" }
     );

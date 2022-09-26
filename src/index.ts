@@ -14,7 +14,6 @@ import {
   enterRoomHandler,
   leaveRoomHandler,
 } from "./ioUtils/room";
-import { create } from "domain";
 
 const prisma = new PrismaClient();
 
@@ -69,15 +68,6 @@ io.on("connection", async (socket) => {
 // api
 // api
 // api
-app.use((_req: Request, res: Response, next: NextFunction) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "OPTIONS, GET, POST, PUT, PATCH, DELETE"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
 
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
