@@ -54,8 +54,8 @@ export const createRoomHandler = async (data: CreateRoomType) => {
 };
 
 export const enterRoomHandler = async (data: {
-  roomID: string;
   currentUserID: string;
+  roomID: string;
 }) => {
   try {
     const { roomID, currentUserID } = data;
@@ -72,19 +72,14 @@ export const enterRoomHandler = async (data: {
 
     if (!room) throw new Error("Something went wrong! Try again later!");
 
-    let updatedActiveUsersIDs: string[] = [];
-
-    if (room.activeUsersIDs && Array.isArray(room.activeUsersIDs)) {
-      updatedActiveUsersIDs = [...room.activeUsersIDs, user.userID];
-    } else {
-      updatedActiveUsersIDs.push(user.userID);
-    }
+    console.log(user.userID);
 
     const updatedRoom = await prisma.room.update({
-      where: { roomID: room.roomID },
-      data: { activeUsersIDs: updatedActiveUsersIDs },
+      where: { name: room.name },
+      data: { activeUsersIDs: { set: [user.userID] } },
     });
 
+    console.log(updatedRoom);
     return updatedRoom;
   } catch (err) {
     console.log(err);
@@ -92,27 +87,24 @@ export const enterRoomHandler = async (data: {
 };
 
 export const leaveRoomHandler = async (data: {
-  currentUserID: string;
   roomID: string;
+  currentUserID: string;
 }) => {
   try {
-    const { currentUserID, roomID } = data;
+    const { roomID, currentUserID } = data;
 
     const foundRoom = await prisma.room.findFirst({
       where: { roomID },
     });
 
     if (!foundRoom) throw new Error("Something went wrong! Try again later!");
-    console.log(foundRoom.activeUsersIDs);
 
     const updatedActiveUsersIDs = foundRoom.activeUsersIDs.filter(
       (id) => id !== currentUserID
     );
 
-    console.log(updatedActiveUsersIDs);
-
     await prisma.room.update({
-      where: { roomID },
+      where: { roomID: foundRoom.roomID },
       data: { activeUsersIDs: updatedActiveUsersIDs },
     });
 

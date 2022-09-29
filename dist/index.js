@@ -37,22 +37,22 @@ const io = new socket_io_1.Server(server, {
         methods: ["GET", "POST", "OPTIONS"],
     },
 });
+// klasa, command handler z enumem
 io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`user connected`);
     const initialRooms = yield (0, room_1.getRoomsHandler)();
-    socket.emit("sending rooms", initialRooms);
-    socket.on("room added", (data) => __awaiter(void 0, void 0, void 0, function* () {
-        yield (0, room_1.createRoomHandler)(data);
-        const updatedAllRooms = yield (0, room_1.getRoomsHandler)();
-        socket.emit("sending rooms", updatedAllRooms);
+    socket.emit("sendingInitialRooms", initialRooms);
+    socket.on("roomAdded", (data) => __awaiter(void 0, void 0, void 0, function* () {
+        const createdRoom = yield (0, room_1.createRoomHandler)(data);
+        socket.emit("sendingAddedRoom", createdRoom);
     }));
-    socket.on("join room", (data) => __awaiter(void 0, void 0, void 0, function* () {
-        const enteringRoom = yield (0, room_1.enterRoomHandler)(data);
-        socket.emit("entered room", enteringRoom);
+    socket.on("joiningRoom", (data) => __awaiter(void 0, void 0, void 0, function* () {
+        const joiningRoom = yield (0, room_1.enterRoomHandler)(data);
+        socket.emit("joinedRoom", joiningRoom);
     }));
-    socket.on("leave room", (data) => __awaiter(void 0, void 0, void 0, function* () {
+    socket.on("leavingRoom", (data) => __awaiter(void 0, void 0, void 0, function* () {
         yield (0, room_1.leaveRoomHandler)(data);
-        socket.emit("left room");
+        socket.emit("leftRoom");
     }));
     socket.on("send-message", (data) => {
         socket.broadcast.emit("receive-message", data);
@@ -64,12 +64,6 @@ io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
 // api
 // api
 // api
-app.use((_req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, PATCH, DELETE");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    next();
-});
 app.use("/api/auth", authRoute_1.default);
 app.use("/api/profile", profileRoute_1.default);
 app.use((error, _req, res, _next) => {

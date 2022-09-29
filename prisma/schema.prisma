@@ -22,6 +22,9 @@ model User {
   Message          Message[]
 }
 
+// to change relation
+// POST => BAZA => WRZUCA DO LOKALEN TAABLICY => UPDATE TABLICY POZNIUEJ 
+
 model Room {
   roomID         String    @id @default(cuid())
   name           String    @unique

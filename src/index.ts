@@ -35,26 +35,26 @@ const io = new Server(server, {
   },
 });
 
+// klasa, command handler z enumem
 io.on("connection", async (socket) => {
   console.log(`user connected`);
   const initialRooms = await getRoomsHandler();
 
-  socket.emit("sending rooms", initialRooms);
+  socket.emit("sendingInitialRooms", initialRooms);
 
-  socket.on("room added", async (data) => {
-    await createRoomHandler(data);
-    const updatedAllRooms = await getRoomsHandler();
-    socket.emit("sending rooms", updatedAllRooms);
+  socket.on("roomAdded", async (data) => {
+    const createdRoom = await createRoomHandler(data);
+    socket.emit("sendingAddedRoom", createdRoom);
   });
 
-  socket.on("join room", async (data) => {
-    const enteringRoom = await enterRoomHandler(data);
-    socket.emit("entered room", enteringRoom);
+  socket.on("joiningRoom", async (data) => {
+    const joiningRoom = await enterRoomHandler(data);
+    socket.emit("joinedRoom", joiningRoom);
   });
 
-  socket.on("leave room", async (data) => {
+  socket.on("leavingRoom", async (data) => {
     await leaveRoomHandler(data);
-    socket.emit("left room");
+    socket.emit("leftRoom");
   });
 
   socket.on("send-message", (data) => {
@@ -69,15 +69,6 @@ io.on("connection", async (socket) => {
 // api
 // api
 // api
-app.use((_req: Request, res: Response, next: NextFunction) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "OPTIONS, GET, POST, PUT, PATCH, DELETE"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
 
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
