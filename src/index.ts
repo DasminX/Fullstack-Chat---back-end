@@ -37,7 +37,6 @@ const io = new Server(server, {
 
 // klasa, command handler z enumem
 io.on("connection", async (socket) => {
-  console.log(`user connected`);
   const initialRooms = await getRoomsHandler();
 
   socket.emit("sendingInitialRooms", initialRooms);
@@ -49,11 +48,17 @@ io.on("connection", async (socket) => {
 
   socket.on("joiningRoom", async (data) => {
     const joiningRoom = await enterRoomHandler(data);
+    socket.join(joiningRoom!.roomID);
+
+    io.to(joiningRoom!.roomID).emit("userJoined", "userID"); // dorobic pokazywanie ktory user z jakim nickiem dolaczyl do pokoju
     socket.emit("joinedRoom", joiningRoom);
   });
 
   socket.on("leavingRoom", async (data) => {
-    await leaveRoomHandler(data);
+    const leavingRoom = await leaveRoomHandler(data);
+    socket.leave(leavingRoom!.roomID);
+
+    io.to(leavingRoom!.roomID).emit("userLeft", "userID"); // dorobic pokazywanie ktory user z jakim nickiem opuscil pokoj
     socket.emit("leftRoom");
   });
 

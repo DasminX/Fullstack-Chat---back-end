@@ -39,7 +39,6 @@ const io = new socket_io_1.Server(server, {
 });
 // klasa, command handler z enumem
 io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(`user connected`);
     const initialRooms = yield (0, room_1.getRoomsHandler)();
     socket.emit("sendingInitialRooms", initialRooms);
     socket.on("roomAdded", (data) => __awaiter(void 0, void 0, void 0, function* () {
@@ -48,10 +47,14 @@ io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     socket.on("joiningRoom", (data) => __awaiter(void 0, void 0, void 0, function* () {
         const joiningRoom = yield (0, room_1.enterRoomHandler)(data);
+        socket.join(joiningRoom.roomID);
+        io.to(joiningRoom.roomID).emit("userJoined", "userID"); // dorobic pokazywanie ktory user z jakim nickiem dolaczyl do pokoju
         socket.emit("joinedRoom", joiningRoom);
     }));
     socket.on("leavingRoom", (data) => __awaiter(void 0, void 0, void 0, function* () {
-        yield (0, room_1.leaveRoomHandler)(data);
+        const leavingRoom = yield (0, room_1.leaveRoomHandler)(data);
+        socket.leave(leavingRoom.roomID);
+        io.to(leavingRoom.roomID).emit("userLeft", "userID"); // dorobic pokazywanie ktory user z jakim nickiem opuscil pokoj
         socket.emit("leftRoom");
     }));
     socket.on("send-message", (data) => {

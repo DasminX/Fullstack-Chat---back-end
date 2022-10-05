@@ -49,23 +49,22 @@ const createRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* 
 exports.createRoomHandler = createRoomHandler;
 const enterRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { roomID, currentUserID } = data;
+        const { clickedRoomID, currentUserID } = data;
         const user = yield prisma.user.findFirst({
             where: { userID: currentUserID },
         });
         if (!user)
             throw new Error("Something went wrong! Try again later!");
         const room = yield prisma.room.findFirst({
-            where: { roomID },
+            where: { roomID: clickedRoomID },
+            select: { name: true, activeUsersIDs: true },
         });
         if (!room)
             throw new Error("Something went wrong! Try again later!");
-        console.log(user.userID);
         const updatedRoom = yield prisma.room.update({
             where: { name: room.name },
-            data: { activeUsersIDs: { set: [user.userID] } },
+            data: { activeUsersIDs: { set: [...room.activeUsersIDs, user.userID] } },
         });
-        console.log(updatedRoom);
         return updatedRoom;
     }
     catch (err) {
@@ -82,11 +81,11 @@ const leaveRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* (
         if (!foundRoom)
             throw new Error("Something went wrong! Try again later!");
         const updatedActiveUsersIDs = foundRoom.activeUsersIDs.filter((id) => id !== currentUserID);
-        yield prisma.room.update({
+        const leftRoom = yield prisma.room.update({
             where: { roomID: foundRoom.roomID },
             data: { activeUsersIDs: updatedActiveUsersIDs },
         });
-        return "Succesfully updated!";
+        return leftRoom;
     }
     catch (err) {
         console.log(err);
