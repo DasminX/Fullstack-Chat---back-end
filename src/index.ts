@@ -62,15 +62,17 @@ io.on("connection", async (socket) => {
     // io.to(leavingRoom!.roomID).emit("userLeft", "userID"); // dorobic pokazywanie ktory user z jakim nickiem opuscil pokoj
     socket.emit("leftRoom");
   });
+
   socket.on("getInitialMessages", async (roomID) => {
     const roomMessages = await getRoomMessages(roomID);
-    // io.to(roomID).emit("fetchedInitialMessages", roomMessages);
-    socket.emit("fetchedInitialMessages", roomMessages);
+    io.to(roomID).emit("fetchedInitialMessages", roomMessages);
+    // socket.emit("fetchedInitialMessages", roomMessages);
   });
 
   socket.on("sendMessage", async (data, roomID, userID) => {
     const sentMessage = await addMessageToRoomDB(data, roomID, userID);
-    console.log(sentMessage);
+
+    socket.broadcast.emit("receiveMessage", sentMessage);
   });
 
   socket.on("disconnect", () => {

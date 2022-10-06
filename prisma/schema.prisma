@@ -8,32 +8,32 @@ datasource db {
 }
 
 model User {
-  username         String
-  hashedPassword   String
-  userAvatarImgUrl String
-  createdAt        DateTime  @default(now())
-  login            String    @unique
   id               String    @id @default(uuid())
+  login            String    @unique
+  hashedPassword   String
+  username         String
+  userAvatarImgUrl String
   Message          Message[]
+  createdAt        DateTime  @default(now())
 }
 
 model Room {
+  id             String    @id @default(cuid())
   name           String    @unique
-  createdAt      DateTime  @default(now())
-  activeUsersIDs String[]
-  logoURL        String
   isPrivate      Boolean
   roomPassword   String
-  id             String    @id @default(cuid())
+  logoURL        String
+  activeUsersIDs String[]
   roomMsgArr     Message[]
+  createdAt      DateTime  @default(now())
 }
 
 model Message {
-  sendByUserID String
-  sendDate     DateTime @default(now())
-  textMessage  String   @db.VarChar(255)
-  sendInRoomID String
   id           String   @id @default(cuid())
+  textMessage  String   @db.VarChar(255)
   sendByUser   User     @relation(fields: [sendByUserID], references: [id])
+  sendByUserID String
   sendInRoom   Room     @relation(fields: [sendInRoomID], references: [id])
+  sendInRoomID String
+  sendDate     DateTime @default(now())
 }

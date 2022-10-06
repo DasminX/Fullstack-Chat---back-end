@@ -112,18 +112,16 @@ export const leaveRoomHandler = async (data: {
   }
 };
 
-export const getRoomMessages = async (data: { roomID: string }) => {
+export const getRoomMessages = async (roomID: string) => {
   try {
-    const { roomID } = data;
-
     const foundRoom = await prisma.room.findFirst({
       where: { id: roomID },
+      include: { roomMsgArr: true },
     });
 
     if (!foundRoom) throw new Error("Something went wrong! Try again later!");
 
-    console.log(foundRoom);
-    return foundRoom;
+    return foundRoom.roomMsgArr;
   } catch (err) {
     console.log(err);
   }

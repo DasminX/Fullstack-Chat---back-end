@@ -59,12 +59,12 @@ io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     socket.on("getInitialMessages", (roomID) => __awaiter(void 0, void 0, void 0, function* () {
         const roomMessages = yield (0, room_1.getRoomMessages)(roomID);
-        // io.to(roomID).emit("fetchedInitialMessages", roomMessages);
-        socket.emit("fetchedInitialMessages", roomMessages);
+        io.to(roomID).emit("fetchedInitialMessages", roomMessages);
+        // socket.emit("fetchedInitialMessages", roomMessages);
     }));
     socket.on("sendMessage", (data, roomID, userID) => __awaiter(void 0, void 0, void 0, function* () {
         const sentMessage = yield (0, room_1.addMessageToRoomDB)(data, roomID, userID);
-        console.log(sentMessage);
+        socket.broadcast.emit("receiveMessage", sentMessage);
     }));
     socket.on("disconnect", () => {
         console.log("user disconnected");

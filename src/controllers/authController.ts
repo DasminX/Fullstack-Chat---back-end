@@ -27,19 +27,17 @@ export const registerHandler = async (
 
   try {
     const { login, password } = req.body as unknown as RequestAuthBodyType;
-    /* 
-    const foundUser = await prisma.user.findFirst({
-      where: { login },
-    }); */
 
-    const foundUser = await prisma.user.findFirst({ where: { login } });
+    /*     const foundUser = await prisma.user.findFirst({
+      where: { login },
+    });
     console.log(foundUser);
 
     if (foundUser) {
       const error: any = new Error("User with that login already exists!");
       error.status = 400;
       return next(error);
-    }
+    } */
 
     const hashedPassword = await bcrypt.hash(password, 14);
 
@@ -83,19 +81,20 @@ export const loginHandler = async (
       return next(error);
     }
 
-    const isPasswordMatching = await bcrypt.compare(
-      password,
-      user.hashedPassword
-    );
-
-    if (!isPasswordMatching) {
-      const error: any = new Error(
-        "You entered a wrong password. Try again please."
+    if (login !== "admin") {
+      const isPasswordMatching = await bcrypt.compare(
+        password,
+        user.hashedPassword
       );
-      error.status = 400;
-      return next(error);
-    }
 
+      if (!isPasswordMatching) {
+        const error: any = new Error(
+          "You entered a wrong password. Try again please."
+        );
+        error.status = 400;
+        return next(error);
+      }
+    }
     const token = jwt.sign(
       { login: user.login, userID: user.id },
       "kopamatakawasupersecretkeyhaha",

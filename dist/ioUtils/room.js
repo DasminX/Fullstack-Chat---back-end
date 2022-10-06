@@ -92,16 +92,15 @@ const leaveRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.leaveRoomHandler = leaveRoomHandler;
-const getRoomMessages = (data) => __awaiter(void 0, void 0, void 0, function* () {
+const getRoomMessages = (roomID) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { roomID } = data;
         const foundRoom = yield prisma.room.findFirst({
             where: { id: roomID },
+            include: { roomMsgArr: true },
         });
         if (!foundRoom)
             throw new Error("Something went wrong! Try again later!");
-        console.log(foundRoom);
-        return foundRoom;
+        return foundRoom.roomMsgArr;
     }
     catch (err) {
         console.log(err);
