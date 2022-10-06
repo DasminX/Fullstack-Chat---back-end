@@ -47,19 +47,25 @@ io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     socket.on("joiningRoom", (data) => __awaiter(void 0, void 0, void 0, function* () {
         const joiningRoom = yield (0, room_1.enterRoomHandler)(data);
-        socket.join(joiningRoom.roomID);
-        io.to(joiningRoom.roomID).emit("userJoined", "userID"); // dorobic pokazywanie ktory user z jakim nickiem dolaczyl do pokoju
+        socket.join(joiningRoom.id);
+        // io.to(joiningRoom!.roomID).emit("userJoined", "userID"); // dorobic pokazywanie ktory user z jakim nickiem dolaczyl do pokoju
         socket.emit("joinedRoom", joiningRoom);
     }));
     socket.on("leavingRoom", (data) => __awaiter(void 0, void 0, void 0, function* () {
         const leavingRoom = yield (0, room_1.leaveRoomHandler)(data);
-        socket.leave(leavingRoom.roomID);
-        io.to(leavingRoom.roomID).emit("userLeft", "userID"); // dorobic pokazywanie ktory user z jakim nickiem opuscil pokoj
+        socket.leave(leavingRoom.id);
+        // io.to(leavingRoom!.roomID).emit("userLeft", "userID"); // dorobic pokazywanie ktory user z jakim nickiem opuscil pokoj
         socket.emit("leftRoom");
     }));
-    socket.on("send-message", (data) => {
-        socket.broadcast.emit("receive-message", data);
-    });
+    socket.on("getInitialMessages", (roomID) => __awaiter(void 0, void 0, void 0, function* () {
+        const roomMessages = yield (0, room_1.getRoomMessages)(roomID);
+        // io.to(roomID).emit("fetchedInitialMessages", roomMessages);
+        socket.emit("fetchedInitialMessages", roomMessages);
+    }));
+    socket.on("sendMessage", (data, roomID, userID) => __awaiter(void 0, void 0, void 0, function* () {
+        const sentMessage = yield (0, room_1.addMessageToRoomDB)(data, roomID, userID);
+        console.log(sentMessage);
+    }));
     socket.on("disconnect", () => {
         console.log("user disconnected");
     });
@@ -71,7 +77,7 @@ app.use("/api/auth", authRoute_1.default);
 app.use("/api/profile", profileRoute_1.default);
 app.use((error, _req, res, _next) => {
     const { status, message } = error;
-    return res.status(status).json({
+    return res.status(status || 500).json({
         status: "error",
         data: {
             message: message,

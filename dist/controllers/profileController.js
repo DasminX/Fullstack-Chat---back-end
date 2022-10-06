@@ -23,7 +23,7 @@ const changeNameHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     try {
         const { changedName } = req.body;
         const user = yield prisma.user.findFirst({
-            where: { userID: req.userID },
+            where: { id: req.userID },
         });
         if (!user) {
             const error = new Error("Not authenticated!");
@@ -32,7 +32,7 @@ const changeNameHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         }
         const updatedUser = yield prisma.user.update({
             data: { username: changedName },
-            where: { userID: req.userID },
+            where: { id: req.userID },
         });
         res.status(201).json({
             status: "ok",
@@ -53,7 +53,7 @@ const changeLogoHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     try {
         const { changedLogoUrl } = req.body;
         const user = yield prisma.user.findFirst({
-            where: { userID: req.userID },
+            where: { id: req.userID },
         });
         if (!user) {
             const error = new Error("Not authenticated!");
@@ -62,7 +62,7 @@ const changeLogoHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         }
         yield prisma.user.updateMany({
             data: { userAvatarImgUrl: changedLogoUrl },
-            where: { userID: req.userID },
+            where: { id: req.userID },
         });
         res.status(201).json({
             status: "ok",

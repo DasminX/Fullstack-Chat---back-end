@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,38 +8,32 @@ datasource db {
 }
 
 model User {
-  userID           String    @id @default(uuid())
-  login            String    @unique
   username         String
   hashedPassword   String
   userAvatarImgUrl String
   createdAt        DateTime  @default(now())
-  Room             Room?     @relation(fields: [activeRoomID], references: [roomID])
-  activeRoomID     String?
+  login            String    @unique
+  id               String    @id @default(uuid())
   Message          Message[]
 }
 
-// to change relation
-// POST => BAZA => WRZUCA DO LOKALEN TAABLICY => UPDATE TABLICY POZNIUEJ 
-
 model Room {
-  roomID         String    @id @default(cuid())
   name           String    @unique
+  createdAt      DateTime  @default(now())
   activeUsersIDs String[]
   logoURL        String
   isPrivate      Boolean
   roomPassword   String
-  createdAt      DateTime  @default(now())
+  id             String    @id @default(cuid())
   roomMsgArr     Message[]
-  User           User[]
 }
 
 model Message {
-  messageID    String   @id @default(cuid())
-  textContent  String   @db.VarChar(255)
-  sendByUser   User     @relation(fields: [sendByUserID], references: [userID])
   sendByUserID String
   sendDate     DateTime @default(now())
-  sendInRoom   Room     @relation(fields: [msgInRoomID], references: [roomID])
-  msgInRoomID  String
+  textMessage  String   @db.VarChar(255)
+  sendInRoomID String
+  id           String   @id @default(cuid())
+  sendByUser   User     @relation(fields: [sendByUserID], references: [id])
+  sendInRoom   Room     @relation(fields: [sendInRoomID], references: [id])
 }

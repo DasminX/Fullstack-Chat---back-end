@@ -27,10 +27,13 @@ export const registerHandler = async (
 
   try {
     const { login, password } = req.body as unknown as RequestAuthBodyType;
-
+    /* 
     const foundUser = await prisma.user.findFirst({
       where: { login },
-    });
+    }); */
+
+    const foundUser = await prisma.user.findFirst({ where: { login } });
+    console.log(foundUser);
 
     if (foundUser) {
       const error: any = new Error("User with that login already exists!");
@@ -72,7 +75,7 @@ export const loginHandler = async (
   try {
     const { login, password } = req.body as unknown as RequestAuthBodyType;
 
-    const user = await prisma.user.findFirst({ where: { login } });
+    const user = await prisma.user.findFirst({ where: { login: login } });
 
     if (!user) {
       const error: any = new Error("User with that login not found!");
@@ -94,7 +97,7 @@ export const loginHandler = async (
     }
 
     const token = jwt.sign(
-      { login: user.login, userID: user.userID },
+      { login: user.login, userID: user.id },
       "kopamatakawasupersecretkeyhaha",
       { expiresIn: "1h" }
     );
@@ -104,6 +107,8 @@ export const loginHandler = async (
       data: { message: "Logged in successfully!", token, user },
     });
   } catch (e) {
+    console.log("wchodzi");
+    console.log(e);
     next(e);
   }
 };

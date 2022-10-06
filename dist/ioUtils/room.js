@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.leaveRoomHandler = exports.enterRoomHandler = exports.createRoomHandler = exports.getRoomsHandler = void 0;
+exports.addMessageToRoomDB = exports.getRoomMessages = exports.leaveRoomHandler = exports.enterRoomHandler = exports.createRoomHandler = exports.getRoomsHandler = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getRoomsHandler = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -51,19 +51,19 @@ const enterRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* (
     try {
         const { clickedRoomID, currentUserID } = data;
         const user = yield prisma.user.findFirst({
-            where: { userID: currentUserID },
+            where: { id: currentUserID },
         });
         if (!user)
             throw new Error("Something went wrong! Try again later!");
         const room = yield prisma.room.findFirst({
-            where: { roomID: clickedRoomID },
+            where: { id: clickedRoomID },
             select: { name: true, activeUsersIDs: true },
         });
         if (!room)
             throw new Error("Something went wrong! Try again later!");
         const updatedRoom = yield prisma.room.update({
             where: { name: room.name },
-            data: { activeUsersIDs: { set: [...room.activeUsersIDs, user.userID] } },
+            data: { activeUsersIDs: { set: [...room.activeUsersIDs, user.id] } },
         });
         return updatedRoom;
     }
@@ -76,13 +76,13 @@ const leaveRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* (
     try {
         const { roomID, currentUserID } = data;
         const foundRoom = yield prisma.room.findFirst({
-            where: { roomID },
+            where: { id: roomID },
         });
         if (!foundRoom)
             throw new Error("Something went wrong! Try again later!");
         const updatedActiveUsersIDs = foundRoom.activeUsersIDs.filter((id) => id !== currentUserID);
         const leftRoom = yield prisma.room.update({
-            where: { roomID: foundRoom.roomID },
+            where: { id: foundRoom.id },
             data: { activeUsersIDs: updatedActiveUsersIDs },
         });
         return leftRoom;
@@ -92,3 +92,40 @@ const leaveRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.leaveRoomHandler = leaveRoomHandler;
+const getRoomMessages = (data) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { roomID } = data;
+        const foundRoom = yield prisma.room.findFirst({
+            where: { id: roomID },
+        });
+        if (!foundRoom)
+            throw new Error("Something went wrong! Try again later!");
+        console.log(foundRoom);
+        return foundRoom;
+    }
+    catch (err) {
+        console.log(err);
+    }
+    // get room messages searching by room ID
+});
+exports.getRoomMessages = getRoomMessages;
+const addMessageToRoomDB = (data, roomID, userID) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { textMessage, id } = data;
+        const createdMessage = yield prisma.message.create({
+            data: {
+                id: id.toString(),
+                textMessage,
+                sendByUserID: userID,
+                sendInRoomID: roomID,
+            },
+        });
+        if (!createdMessage)
+            throw new Error("Something went wrong! Try again later!");
+        return createdMessage;
+    }
+    catch (err) {
+        console.log(err);
+    }
+});
+exports.addMessageToRoomDB = addMessageToRoomDB;

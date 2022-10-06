@@ -25,7 +25,7 @@ export const changeNameHandler = async (
     const { changedName } = req.body as unknown as RequestProfileBodyType;
 
     const user = await prisma.user.findFirst({
-      where: { userID: req.userID },
+      where: { id: req.userID },
     });
 
     if (!user) {
@@ -36,7 +36,7 @@ export const changeNameHandler = async (
 
     const updatedUser = await prisma.user.update({
       data: { username: changedName },
-      where: { userID: req.userID },
+      where: { id: req.userID },
     });
 
     res.status(201).json({
@@ -62,7 +62,7 @@ export const changeLogoHandler = async (
     const { changedLogoUrl } = req.body as unknown as RequestProfileBodyType;
 
     const user = await prisma.user.findFirst({
-      where: { userID: req.userID },
+      where: { id: req.userID },
     });
 
     if (!user) {
@@ -73,7 +73,7 @@ export const changeLogoHandler = async (
 
     await prisma.user.updateMany({
       data: { userAvatarImgUrl: changedLogoUrl },
-      where: { userID: req.userID },
+      where: { id: req.userID },
     });
 
     res.status(201).json({

@@ -27,9 +27,12 @@ const registerHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     }
     try {
         const { login, password } = req.body;
-        const foundUser = yield prisma.user.findFirst({
-            where: { login },
-        });
+        /*
+        const foundUser = await prisma.user.findFirst({
+          where: { login },
+        }); */
+        const foundUser = yield prisma.user.findFirst({ where: { login } });
+        console.log(foundUser);
         if (foundUser) {
             const error = new Error("User with that login already exists!");
             error.status = 400;
@@ -62,7 +65,7 @@ exports.registerHandler = registerHandler;
 const loginHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { login, password } = req.body;
-        const user = yield prisma.user.findFirst({ where: { login } });
+        const user = yield prisma.user.findFirst({ where: { login: login } });
         if (!user) {
             const error = new Error("User with that login not found!");
             error.status = 401;
@@ -74,13 +77,15 @@ const loginHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             error.status = 400;
             return next(error);
         }
-        const token = jsonwebtoken_1.default.sign({ login: user.login, userID: user.userID }, "kopamatakawasupersecretkeyhaha", { expiresIn: "1h" });
+        const token = jsonwebtoken_1.default.sign({ login: user.login, userID: user.id }, "kopamatakawasupersecretkeyhaha", { expiresIn: "1h" });
         res.status(200).json({
             status: "ok",
             data: { message: "Logged in successfully!", token, user },
         });
     }
     catch (e) {
+        console.log("wchodzi");
+        console.log(e);
         next(e);
     }
 });

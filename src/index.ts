@@ -13,8 +13,9 @@ import {
   createRoomHandler,
   enterRoomHandler,
   leaveRoomHandler,
+  getRoomMessages,
+  addMessageToRoomDB,
 } from "./ioUtils/room";
-import { create } from "domain";
 
 const prisma = new PrismaClient();
 
@@ -48,22 +49,28 @@ io.on("connection", async (socket) => {
 
   socket.on("joiningRoom", async (data) => {
     const joiningRoom = await enterRoomHandler(data);
-    socket.join(joiningRoom!.roomID);
+    socket.join(joiningRoom!.id);
 
-    io.to(joiningRoom!.roomID).emit("userJoined", "userID"); // dorobic pokazywanie ktory user z jakim nickiem dolaczyl do pokoju
+    // io.to(joiningRoom!.roomID).emit("userJoined", "userID"); // dorobic pokazywanie ktory user z jakim nickiem dolaczyl do pokoju
     socket.emit("joinedRoom", joiningRoom);
   });
 
   socket.on("leavingRoom", async (data) => {
     const leavingRoom = await leaveRoomHandler(data);
-    socket.leave(leavingRoom!.roomID);
+    socket.leave(leavingRoom!.id);
 
-    io.to(leavingRoom!.roomID).emit("userLeft", "userID"); // dorobic pokazywanie ktory user z jakim nickiem opuscil pokoj
+    // io.to(leavingRoom!.roomID).emit("userLeft", "userID"); // dorobic pokazywanie ktory user z jakim nickiem opuscil pokoj
     socket.emit("leftRoom");
   });
+  socket.on("getInitialMessages", async (roomID) => {
+    const roomMessages = await getRoomMessages(roomID);
+    // io.to(roomID).emit("fetchedInitialMessages", roomMessages);
+    socket.emit("fetchedInitialMessages", roomMessages);
+  });
 
-  socket.on("send-message", (data) => {
-    socket.broadcast.emit("receive-message", data);
+  socket.on("sendMessage", async (data, roomID, userID) => {
+    const sentMessage = await addMessageToRoomDB(data, roomID, userID);
+    console.log(sentMessage);
   });
 
   socket.on("disconnect", () => {
@@ -80,7 +87,7 @@ app.use("/api/profile", profileRouter);
 
 app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
   const { status, message } = error;
-  return res.status(status).json({
+  return res.status(status || 500).json({
     status: "error",
     data: {
       message: message,

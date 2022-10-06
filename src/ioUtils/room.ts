@@ -61,13 +61,13 @@ export const enterRoomHandler = async (data: {
     const { clickedRoomID, currentUserID } = data;
 
     const user = await prisma.user.findFirst({
-      where: { userID: currentUserID },
+      where: { id: currentUserID },
     });
 
     if (!user) throw new Error("Something went wrong! Try again later!");
 
     const room = await prisma.room.findFirst({
-      where: { roomID: clickedRoomID },
+      where: { id: clickedRoomID },
       select: { name: true, activeUsersIDs: true },
     });
 
@@ -75,7 +75,7 @@ export const enterRoomHandler = async (data: {
 
     const updatedRoom = await prisma.room.update({
       where: { name: room.name },
-      data: { activeUsersIDs: { set: [...room.activeUsersIDs, user.userID] } },
+      data: { activeUsersIDs: { set: [...room.activeUsersIDs, user.id] } },
     });
 
     return updatedRoom;
@@ -92,7 +92,7 @@ export const leaveRoomHandler = async (data: {
     const { roomID, currentUserID } = data;
 
     const foundRoom = await prisma.room.findFirst({
-      where: { roomID },
+      where: { id: roomID },
     });
 
     if (!foundRoom) throw new Error("Something went wrong! Try again later!");
@@ -102,11 +102,55 @@ export const leaveRoomHandler = async (data: {
     );
 
     const leftRoom = await prisma.room.update({
-      where: { roomID: foundRoom.roomID },
+      where: { id: foundRoom.id },
       data: { activeUsersIDs: updatedActiveUsersIDs },
     });
 
     return leftRoom;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const getRoomMessages = async (data: { roomID: string }) => {
+  try {
+    const { roomID } = data;
+
+    const foundRoom = await prisma.room.findFirst({
+      where: { id: roomID },
+    });
+
+    if (!foundRoom) throw new Error("Something went wrong! Try again later!");
+
+    console.log(foundRoom);
+    return foundRoom;
+  } catch (err) {
+    console.log(err);
+  }
+  // get room messages searching by room ID
+};
+
+export const addMessageToRoomDB = async (
+  data: { textMessage: string; id: number },
+  roomID: string,
+  userID: string
+) => {
+  try {
+    const { textMessage, id } = data;
+
+    const createdMessage = await prisma.message.create({
+      data: {
+        id: id.toString(),
+        textMessage,
+        sendByUserID: userID,
+        sendInRoomID: roomID,
+      },
+    });
+
+    if (!createdMessage)
+      throw new Error("Something went wrong! Try again later!");
+
+    return createdMessage;
   } catch (err) {
     console.log(err);
   }
