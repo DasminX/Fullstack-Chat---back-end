@@ -40,7 +40,10 @@ const createRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* 
         });
         if (!createdRoom)
             throw new Error("Something went wrong! Try again later.");
-        return createdRoom;
+        const allRooms = yield prisma.room.findMany();
+        if (!allRooms)
+            throw new Error("Something went wrong! Try again later.");
+        return allRooms;
     }
     catch (err) {
         console.log(err);
@@ -96,11 +99,25 @@ const getRoomMessages = (roomID) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const foundRoom = yield prisma.room.findFirst({
             where: { id: roomID },
-            include: { roomMsgArr: true },
+            include: {
+                roomMsgArr: {
+                    include: { sendByUser: { select: { userAvatarImgUrl: true } } },
+                },
+            },
         });
         if (!foundRoom)
             throw new Error("Something went wrong! Try again later!");
-        return foundRoom.roomMsgArr;
+        const newMsgArr = foundRoom.roomMsgArr.map((room) => {
+            return {
+                id: room.id,
+                sendByUserID: room.sendByUserID,
+                sendByUserLogo: room.sendByUser.userAvatarImgUrl,
+                sendDate: room.sendDate,
+                sendInRoomID: room.sendInRoomID,
+                textMessage: room.textMessage,
+            };
+        });
+        return newMsgArr;
     }
     catch (err) {
         console.log(err);
@@ -108,15 +125,15 @@ const getRoomMessages = (roomID) => __awaiter(void 0, void 0, void 0, function* 
     // get room messages searching by room ID
 });
 exports.getRoomMessages = getRoomMessages;
-const addMessageToRoomDB = (data, roomID, userID) => __awaiter(void 0, void 0, void 0, function* () {
+const addMessageToRoomDB = (data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { textMessage, id } = data;
+        const { textMessage, id, sendInRoomID, sendByUserID } = data;
         const createdMessage = yield prisma.message.create({
             data: {
                 id: id.toString(),
                 textMessage,
-                sendByUserID: userID,
-                sendInRoomID: roomID,
+                sendByUserID,
+                sendInRoomID,
             },
         });
         if (!createdMessage)

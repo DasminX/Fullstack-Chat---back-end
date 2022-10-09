@@ -81,7 +81,7 @@ export const loginHandler = async (
       return next(error);
     }
 
-    if (login !== "admin") {
+    if (login !== "admin" && login !== "add") {
       const isPasswordMatching = await bcrypt.compare(
         password,
         user.hashedPassword

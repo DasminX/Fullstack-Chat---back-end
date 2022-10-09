@@ -50,6 +50,12 @@ const changeNameHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, 
 });
 exports.changeNameHandler = changeNameHandler;
 const changeLogoHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const validationErrorArr = (0, express_validator_1.validationResult)(req);
+    if (!validationErrorArr.isEmpty()) {
+        const error = new Error("Something went wrong in VALIDATION");
+        error.status = 422;
+        return next(error);
+    }
     try {
         const { changedLogoUrl } = req.body;
         const user = yield prisma.user.findFirst({
@@ -60,7 +66,7 @@ const changeLogoHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, 
             error.status = 400;
             return next(error);
         }
-        yield prisma.user.updateMany({
+        yield prisma.user.update({
             data: { userAvatarImgUrl: changedLogoUrl },
             where: { id: req.userID },
         });

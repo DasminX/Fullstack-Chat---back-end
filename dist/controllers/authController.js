@@ -70,7 +70,7 @@ const loginHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             error.status = 401;
             return next(error);
         }
-        if (login !== "admin") {
+        if (login !== "admin" && login !== "add") {
             const isPasswordMatching = yield bcryptjs_1.default.compare(password, user.hashedPassword);
             if (!isPasswordMatching) {
                 const error = new Error("You entered a wrong password. Try again please.");

@@ -1,12 +1,13 @@
 import express, { NextFunction, Request, Response } from "express";
 import http from "http";
 import helmet from "helmet";
+import path from "path";
+import cors from "cors";
+// import multer from "multer";
 import { Server } from "socket.io";
 
 import authRouter from "./routes/authRoute";
 import profileRouter from "./routes/profileRoute";
-import cors from "cors";
-import { PrismaClient } from "@prisma/client";
 
 import {
   getRoomsHandler,
@@ -17,13 +18,23 @@ import {
   addMessageToRoomDB,
 } from "./ioUtils/room";
 
-const prisma = new PrismaClient();
-
 const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+// app.use("/images", express.static(`${__dirname}/images`));
+
+// const fileStorage = multer.diskStorage({
+//   destination: function (req, file, callback) {
+//     callback(null, "images");
+//   },
+//   filename: function (req, file, callback) {
+//     callback(null, `${file.filename}-${Math.random().toString().slice(2, 10)}`);
+//   },
+// });
+
+// app.use(multer({ storage: fileStorage }).any());
 
 // socket.io
 // socket.io
@@ -32,7 +43,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
-    methods: ["GET", "POST", "OPTIONS"],
+    methods: ["GET", "POST", "OPTIONS", "PUT"],
   },
 });
 
@@ -43,8 +54,8 @@ io.on("connection", async (socket) => {
   socket.emit("sendingInitialRooms", initialRooms);
 
   socket.on("roomAdded", async (data) => {
-    const createdRoom = await createRoomHandler(data);
-    socket.emit("sendingAddedRoom", createdRoom);
+    const allRooms = await createRoomHandler(data);
+    io.emit("sendingUpdatedRooms", allRooms);
   });
 
   socket.on("joiningRoom", async (data) => {
@@ -69,10 +80,11 @@ io.on("connection", async (socket) => {
     // socket.emit("fetchedInitialMessages", roomMessages);
   });
 
-  socket.on("sendMessage", async (data, roomID, userID) => {
-    const sentMessage = await addMessageToRoomDB(data, roomID, userID);
+  socket.on("sendMessage", async (data) => {
+    const sentMessage = await addMessageToRoomDB(data);
+    const { sendByUserLogo } = data;
 
-    socket.broadcast.emit("receiveMessage", sentMessage);
+    socket.broadcast.emit("receiveMessage", sentMessage, sendByUserLogo);
   });
 
   socket.on("disconnect", () => {

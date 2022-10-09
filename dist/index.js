@@ -15,18 +15,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
 const helmet_1 = __importDefault(require("helmet"));
+const cors_1 = __importDefault(require("cors"));
+// import multer from "multer";
 const socket_io_1 = require("socket.io");
 const authRoute_1 = __importDefault(require("./routes/authRoute"));
 const profileRoute_1 = __importDefault(require("./routes/profileRoute"));
-const cors_1 = __importDefault(require("cors"));
-const client_1 = require("@prisma/client");
 const room_1 = require("./ioUtils/room");
-const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.json());
+// app.use("/images", express.static(`${__dirname}/images`));
+// const fileStorage = multer.diskStorage({
+//   destination: function (req, file, callback) {
+//     callback(null, "images");
+//   },
+//   filename: function (req, file, callback) {
+//     callback(null, `${file.filename}-${Math.random().toString().slice(2, 10)}`);
+//   },
+// });
+// app.use(multer({ storage: fileStorage }).any());
 // socket.io
 // socket.io
 // socket.io
@@ -34,7 +43,7 @@ const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server, {
     cors: {
         origin: "http://localhost:3000",
-        methods: ["GET", "POST", "OPTIONS"],
+        methods: ["GET", "POST", "OPTIONS", "PUT"],
     },
 });
 // klasa, command handler z enumem
@@ -42,8 +51,8 @@ io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
     const initialRooms = yield (0, room_1.getRoomsHandler)();
     socket.emit("sendingInitialRooms", initialRooms);
     socket.on("roomAdded", (data) => __awaiter(void 0, void 0, void 0, function* () {
-        const createdRoom = yield (0, room_1.createRoomHandler)(data);
-        socket.emit("sendingAddedRoom", createdRoom);
+        const allRooms = yield (0, room_1.createRoomHandler)(data);
+        io.emit("sendingUpdatedRooms", allRooms);
     }));
     socket.on("joiningRoom", (data) => __awaiter(void 0, void 0, void 0, function* () {
         const joiningRoom = yield (0, room_1.enterRoomHandler)(data);
@@ -62,9 +71,10 @@ io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
         io.to(roomID).emit("fetchedInitialMessages", roomMessages);
         // socket.emit("fetchedInitialMessages", roomMessages);
     }));
-    socket.on("sendMessage", (data, roomID, userID) => __awaiter(void 0, void 0, void 0, function* () {
-        const sentMessage = yield (0, room_1.addMessageToRoomDB)(data, roomID, userID);
-        socket.broadcast.emit("receiveMessage", sentMessage);
+    socket.on("sendMessage", (data) => __awaiter(void 0, void 0, void 0, function* () {
+        const sentMessage = yield (0, room_1.addMessageToRoomDB)(data);
+        const { sendByUserLogo } = data;
+        socket.broadcast.emit("receiveMessage", sentMessage, sendByUserLogo);
     }));
     socket.on("disconnect", () => {
         console.log("user disconnected");

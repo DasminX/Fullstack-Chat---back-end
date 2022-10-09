@@ -10,17 +10,17 @@ const changeNameValidator = check("changedName")
   .exists()
   .isLength({ min: 3, max: 12 });
 
-const changeLogoValidator = check("changedName").exists();
+const changeLogoValidator = check("changedLogoUrl").exists();
 
 const router = Router();
 
 // ZROBIC VALIDATOR
 router
   .route("/change-name")
-  .post(isAuthMiddleware, changeNameValidator, changeNameHandler);
+  .put(isAuthMiddleware, changeNameValidator, changeNameHandler);
 router
   .route("/change-logo")
-  .post(isAuthMiddleware, changeLogoValidator, changeLogoHandler);
+  .put(isAuthMiddleware, changeLogoValidator, changeLogoHandler);
 
 //SPRAWDZIC CZY NA PEWNO DOBRZE WSZYSTKO LOGIKA
 

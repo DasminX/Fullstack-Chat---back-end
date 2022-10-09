@@ -47,7 +47,11 @@ export const createRoomHandler = async (data: CreateRoomType) => {
 
     if (!createdRoom) throw new Error("Something went wrong! Try again later.");
 
-    return createdRoom;
+    const allRooms = await prisma.room.findMany();
+
+    if (!allRooms) throw new Error("Something went wrong! Try again later.");
+
+    return allRooms;
   } catch (err) {
     console.log(err);
   }
@@ -116,32 +120,49 @@ export const getRoomMessages = async (roomID: string) => {
   try {
     const foundRoom = await prisma.room.findFirst({
       where: { id: roomID },
-      include: { roomMsgArr: true },
+      include: {
+        roomMsgArr: {
+          include: { sendByUser: { select: { userAvatarImgUrl: true } } },
+        },
+      },
     });
 
     if (!foundRoom) throw new Error("Something went wrong! Try again later!");
 
-    return foundRoom.roomMsgArr;
+    const newMsgArr = foundRoom.roomMsgArr.map((room) => {
+      return {
+        id: room.id,
+        sendByUserID: room.sendByUserID,
+        sendByUserLogo: room.sendByUser.userAvatarImgUrl,
+        sendDate: room.sendDate,
+        sendInRoomID: room.sendInRoomID,
+        textMessage: room.textMessage,
+      };
+    });
+
+    return newMsgArr;
   } catch (err) {
     console.log(err);
   }
   // get room messages searching by room ID
 };
 
-export const addMessageToRoomDB = async (
-  data: { textMessage: string; id: number },
-  roomID: string,
-  userID: string
-) => {
+export const addMessageToRoomDB = async (data: {
+  id: number;
+  sendByUserID: string;
+  sendInRoomID: string;
+  textMessage: string;
+  sendDate: string;
+}) => {
   try {
-    const { textMessage, id } = data;
+    const { textMessage, id, sendInRoomID, sendByUserID } = data;
 
     const createdMessage = await prisma.message.create({
       data: {
         id: id.toString(),
         textMessage,
-        sendByUserID: userID,
-        sendInRoomID: roomID,
+        sendByUserID,
+        sendInRoomID,
       },
     });
 

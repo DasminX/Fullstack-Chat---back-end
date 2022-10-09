@@ -58,6 +58,13 @@ export const changeLogoHandler = async (
   res: Response,
   next: NextFunction
 ) => {
+  const validationErrorArr = validationResult(req);
+  if (!validationErrorArr.isEmpty()) {
+    const error: any = new Error("Something went wrong in VALIDATION");
+    error.status = 422;
+    return next(error);
+  }
+
   try {
     const { changedLogoUrl } = req.body as unknown as RequestProfileBodyType;
 
@@ -71,7 +78,7 @@ export const changeLogoHandler = async (
       return next(error);
     }
 
-    await prisma.user.updateMany({
+    await prisma.user.update({
       data: { userAvatarImgUrl: changedLogoUrl },
       where: { id: req.userID },
     });
