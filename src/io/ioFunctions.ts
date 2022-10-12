@@ -1,11 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-
-type CreateRoomType = {
-  name: string;
-  logoURL: string;
-  isPrivate: boolean;
-  roomPassword: string;
-};
+import { CreateRoomType } from "../types/types";
 
 const prisma = new PrismaClient();
 
