@@ -44,7 +44,9 @@ export const getIoServer = (server: any) => {
       const sentMessage = await addMessageToRoomDB(data);
       const { sendByUserLogo } = data;
 
-      socket.broadcast.emit("receiveMessage", sentMessage, sendByUserLogo);
+      socket.broadcast
+        .to(sentMessage!.sendInRoomID)
+        .emit("receiveMessage", sentMessage, sendByUserLogo);
     });
 
     socket.on("disconnect", () => {

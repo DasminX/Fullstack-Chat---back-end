@@ -3,19 +3,10 @@ import http from "http";
 import helmet from "helmet";
 import cors from "cors";
 // import multer from "multer";
-import { Server } from "socket.io";
 
 import authRouter from "./routes/authRoute";
 import profileRouter from "./routes/profileRoute";
 
-import {
-  getRoomsHandler,
-  createRoomHandler,
-  enterRoomHandler,
-  leaveRoomHandler,
-  getRoomMessages,
-  addMessageToRoomDB,
-} from "./io/ioFunctions";
 import { getIoServer } from "./io/ioInstance";
 import { ExtendedError } from "socket.io/dist/namespace";
 
@@ -37,14 +28,14 @@ app.use("/api/profile", profileRouter);
 
 app.use(
   (error: ExtendedError, _req: Request, res: Response, _next: NextFunction) => {
-    // dorobic extended Error class :)
-    // const { statusCode, message } = error;
-    // return res.status(statusCode || 500).json({
-    // status: "error",
-    // data: {
-    //   message: message,
-    // },
-    // });
+    const { message } = error;
+
+    return res.status(500).json({
+      status: "error",
+      data: {
+        message: message,
+      },
+    });
   }
 );
 

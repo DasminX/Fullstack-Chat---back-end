@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
 const helmet_1 = __importDefault(require("helmet"));
 const cors_1 = __importDefault(require("cors"));
+// import multer from "multer";
 const authRoute_1 = __importDefault(require("./routes/authRoute"));
 const profileRoute_1 = __importDefault(require("./routes/profileRoute"));
 const ioInstance_1 = require("./io/ioInstance");
@@ -23,14 +24,13 @@ const io = (0, ioInstance_1.getIoServer)(server);
 app.use("/api/auth", authRoute_1.default);
 app.use("/api/profile", profileRoute_1.default);
 app.use((error, _req, res, _next) => {
-    // dorobic extended Error class :)
-    // const { statusCode, message } = error;
-    // return res.status(statusCode || 500).json({
-    // status: "error",
-    // data: {
-    //   message: message,
-    // },
-    // });
+    const { message } = error;
+    return res.status(500).json({
+        status: "error",
+        data: {
+            message: message,
+        },
+    });
 });
 // SPRAWDZIC SCHEMAT PRISMY
 // ZROBIC UNIWERSALNY ERROR HANDLING
