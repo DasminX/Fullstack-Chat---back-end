@@ -27,16 +27,29 @@ const getIoServer = (server) => {
             io.emit("sendingUpdatedRooms", allRooms);
         }));
         socket.on("joiningRoom", (data) => __awaiter(void 0, void 0, void 0, function* () {
-            const joiningRoom = yield (0, ioFunctions_1.enterRoomHandler)(data);
-            socket.join(joiningRoom.id);
-            // io.to(joiningRoom!.roomID).emit("userJoined", "userID"); // dorobic pokazywanie ktory user z jakim nickiem dolaczyl do pokoju
-            socket.emit("joinedRoom", joiningRoom);
+            const roomPassword = yield (0, ioFunctions_1.checkRoomHasAPassword)(data.currentRoomID);
+            if (typeof roomPassword !== "string")
+                return;
+            console.log(roomPassword);
+            if (roomPassword.length === 0) {
+                console.log("wchodzi tu");
+                const joiningRoomRes = yield (0, ioFunctions_1.enterRoomHandler)(data);
+                if (!joiningRoomRes)
+                    return;
+                socket.join(joiningRoomRes.joiningRoom.id);
+                socket.emit("joinedRoom", joiningRoomRes.joiningRoom, `User ${joiningRoomRes.username} has joined the room.`);
+            }
+            else {
+                console.log("wchodzi tam");
+                socket.emit("roomPasswordPrompt", roomPassword);
+            }
         }));
         socket.on("leavingRoom", (data) => __awaiter(void 0, void 0, void 0, function* () {
-            const leavingRoom = yield (0, ioFunctions_1.leaveRoomHandler)(data);
-            socket.leave(leavingRoom.id);
-            // io.to(leavingRoom!.roomID).emit("userLeft", "userID"); // dorobic pokazywanie ktory user z jakim nickiem opuscil pokoj
-            socket.emit("leftRoom");
+            const responseObj = yield (0, ioFunctions_1.leaveRoomHandler)(data);
+            if (!responseObj)
+                return;
+            socket.leave(responseObj.leavingRoom.id);
+            socket.emit("leftRoom", responseObj.leavingRoom.id, `User ${responseObj.userWhoLeft.username} has left the room.`);
         }));
         socket.on("getInitialMessages", (roomID) => __awaiter(void 0, void 0, void 0, function* () {
             const roomMessages = yield (0, ioFunctions_1.getRoomMessages)(roomID);

@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-import {addMessageToRoomDB, createRoomHandler, enterRoomHandler, getRoomMessages, getRoomsHandler, leaveRoomHandler} from "./ioFunctions"; //prettier-ignore
+import {addMessageToRoomDB, checkRoomHasAPassword, createRoomHandler, enterRoomHandler, getRoomMessages, getRoomsHandler, leaveRoomHandler} from "./ioFunctions"; //prettier-ignore
 
 export const getIoServer = (server: any) => {
   const io = new Server(server, {
@@ -19,19 +19,39 @@ export const getIoServer = (server: any) => {
     });
 
     socket.on("joiningRoom", async (data) => {
-      const joiningRoom = await enterRoomHandler(data);
-      socket.join(joiningRoom!.id);
+      const roomPassword = await checkRoomHasAPassword(data.currentRoomID);
 
-      // io.to(joiningRoom!.roomID).emit("userJoined", "userID"); // dorobic pokazywanie ktory user z jakim nickiem dolaczyl do pokoju
-      socket.emit("joinedRoom", joiningRoom);
+      if (typeof roomPassword !== "string") return;
+
+      console.log(roomPassword);
+      if (roomPassword.length === 0) {
+        console.log("wchodzi tu");
+        const joiningRoomRes = await enterRoomHandler(data);
+        if (!joiningRoomRes) return;
+
+        socket.join(joiningRoomRes.joiningRoom!.id);
+
+        socket.emit(
+          "joinedRoom",
+          joiningRoomRes.joiningRoom,
+          `User ${joiningRoomRes.username} has joined the room.`
+        );
+      } else {
+        console.log("wchodzi tam");
+        socket.emit("roomPasswordPrompt", roomPassword);
+      }
     });
 
     socket.on("leavingRoom", async (data) => {
-      const leavingRoom = await leaveRoomHandler(data);
-      socket.leave(leavingRoom!.id);
+      const responseObj = await leaveRoomHandler(data);
+      if (!responseObj) return;
 
-      // io.to(leavingRoom!.roomID).emit("userLeft", "userID"); // dorobic pokazywanie ktory user z jakim nickiem opuscil pokoj
-      socket.emit("leftRoom");
+      socket.leave(responseObj.leavingRoom.id);
+      socket.emit(
+        "leftRoom",
+        responseObj.leavingRoom.id,
+        `User ${responseObj.userWhoLeft.username} has left the room.`
+      );
     });
 
     socket.on("getInitialMessages", async (roomID) => {

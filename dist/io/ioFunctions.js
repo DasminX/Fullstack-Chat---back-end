@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addMessageToRoomDB = exports.getRoomMessages = exports.leaveRoomHandler = exports.enterRoomHandler = exports.createRoomHandler = exports.getRoomsHandler = void 0;
+exports.addMessageToRoomDB = exports.getRoomMessages = exports.leaveRoomHandler = exports.enterRoomHandler = exports.checkRoomHasAPassword = exports.createRoomHandler = exports.getRoomsHandler = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getRoomsHandler = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -50,11 +50,27 @@ const createRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.createRoomHandler = createRoomHandler;
+const checkRoomHasAPassword = (clickedRoomID) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const room = yield prisma.room.findFirst({
+            where: { id: clickedRoomID },
+            select: { roomPassword: true },
+        });
+        if (!room)
+            throw new Error("Something went wrong! Try again later!");
+        return room.roomPassword;
+    }
+    catch (err) {
+        console.log(err);
+    }
+});
+exports.checkRoomHasAPassword = checkRoomHasAPassword;
 const enterRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { clickedRoomID, currentUserID } = data;
         const user = yield prisma.user.findFirst({
             where: { id: currentUserID },
+            select: { id: true, username: true },
         });
         if (!user)
             throw new Error("Something went wrong! Try again later!");
@@ -68,7 +84,7 @@ const enterRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* (
             where: { name: room.name },
             data: { activeUsersIDs: { set: [...room.activeUsersIDs, user.id] } },
         });
-        return updatedRoom;
+        return { joiningRoom: updatedRoom, username: user.username };
     }
     catch (err) {
         console.log(err);
@@ -84,11 +100,17 @@ const leaveRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* (
         if (!foundRoom)
             throw new Error("Something went wrong! Try again later!");
         const updatedActiveUsersIDs = foundRoom.activeUsersIDs.filter((id) => id !== currentUserID);
-        const leftRoom = yield prisma.room.update({
+        const leavingRoom = yield prisma.room.update({
             where: { id: foundRoom.id },
             data: { activeUsersIDs: updatedActiveUsersIDs },
         });
-        return leftRoom;
+        const userWhoLeft = yield prisma.user.findFirst({
+            where: { id: currentUserID },
+            select: { username: true },
+        });
+        if (!userWhoLeft)
+            throw new Error("Something went wrong! Try again later!");
+        return { leavingRoom, userWhoLeft };
     }
     catch (err) {
         console.log(err);
