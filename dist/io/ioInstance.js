@@ -27,22 +27,18 @@ const getIoServer = (server) => {
             io.emit("sendingUpdatedRooms", allRooms);
         }));
         socket.on("joiningRoom", (data) => __awaiter(void 0, void 0, void 0, function* () {
-            const roomPassword = yield (0, ioFunctions_1.checkRoomHasAPassword)(data.currentRoomID);
-            if (typeof roomPassword !== "string")
+            // PRIVATE ROOM APP V2
+            // const roomPrivacy = await checkRoomHasAPassword(data.currentRoomID);
+            // if (!roomPrivacy) return;
+            // if (!roomPrivacy.isPrivate) {
+            const joiningRoomRes = yield (0, ioFunctions_1.enterRoomHandler)(data);
+            if (!joiningRoomRes)
                 return;
-            console.log(roomPassword);
-            if (roomPassword.length === 0) {
-                console.log("wchodzi tu");
-                const joiningRoomRes = yield (0, ioFunctions_1.enterRoomHandler)(data);
-                if (!joiningRoomRes)
-                    return;
-                socket.join(joiningRoomRes.joiningRoom.id);
-                socket.emit("joinedRoom", joiningRoomRes.joiningRoom, `User ${joiningRoomRes.username} has joined the room.`);
-            }
-            else {
-                console.log("wchodzi tam");
-                socket.emit("roomPasswordPrompt", roomPassword);
-            }
+            socket.join(joiningRoomRes.joiningRoom.id);
+            socket.emit("joinedRoom", joiningRoomRes.joiningRoom, `User ${joiningRoomRes.username} has joined the room.`);
+            // } else {
+            //   socket.emit("roomPasswordPrompt", roomPrivacy.password);
+            // }
         }));
         socket.on("leavingRoom", (data) => __awaiter(void 0, void 0, void 0, function* () {
             const responseObj = yield (0, ioFunctions_1.leaveRoomHandler)(data);

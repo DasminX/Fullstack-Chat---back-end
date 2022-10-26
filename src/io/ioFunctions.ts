@@ -55,12 +55,12 @@ export const checkRoomHasAPassword = async (clickedRoomID: string) => {
   try {
     const room = await prisma.room.findFirst({
       where: { id: clickedRoomID },
-      select: { roomPassword: true },
+      select: { roomPassword: true, isPrivate: true },
     });
 
     if (!room) throw new Error("Something went wrong! Try again later!");
 
-    return room.roomPassword;
+    return { password: room.roomPassword, isPrivate: room.isPrivate };
   } catch (err) {
     console.log(err);
   }

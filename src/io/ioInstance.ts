@@ -19,27 +19,25 @@ export const getIoServer = (server: any) => {
     });
 
     socket.on("joiningRoom", async (data) => {
-      const roomPassword = await checkRoomHasAPassword(data.currentRoomID);
+      // PRIVATE ROOM APP V2
+      // const roomPrivacy = await checkRoomHasAPassword(data.currentRoomID);
 
-      if (typeof roomPassword !== "string") return;
+      // if (!roomPrivacy) return;
 
-      console.log(roomPassword);
-      if (roomPassword.length === 0) {
-        console.log("wchodzi tu");
-        const joiningRoomRes = await enterRoomHandler(data);
-        if (!joiningRoomRes) return;
+      // if (!roomPrivacy.isPrivate) {
+      const joiningRoomRes = await enterRoomHandler(data);
+      if (!joiningRoomRes) return;
 
-        socket.join(joiningRoomRes.joiningRoom!.id);
+      socket.join(joiningRoomRes.joiningRoom!.id);
 
-        socket.emit(
-          "joinedRoom",
-          joiningRoomRes.joiningRoom,
-          `User ${joiningRoomRes.username} has joined the room.`
-        );
-      } else {
-        console.log("wchodzi tam");
-        socket.emit("roomPasswordPrompt", roomPassword);
-      }
+      socket.emit(
+        "joinedRoom",
+        joiningRoomRes.joiningRoom,
+        `User ${joiningRoomRes.username} has joined the room.`
+      );
+      // } else {
+      //   socket.emit("roomPasswordPrompt", roomPrivacy.password);
+      // }
     });
 
     socket.on("leavingRoom", async (data) => {

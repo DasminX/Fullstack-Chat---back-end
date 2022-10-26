@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { check } from "express-validator";
 import { loginHandler, registerHandler } from "../controllers/authController";
+import { catchAsync } from "../utils/catchAsync";
 
 const router = Router();
 
@@ -11,9 +12,8 @@ const authValidator = [
     .isStrongPassword({ minLength: 8, minUppercase: 1, minNumbers: 1 }),
 ];
 
-// ZROBIC VALIDATOR
-router.route("/register").post(authValidator, registerHandler);
-router.route("/login").post(authValidator, loginHandler);
+router.route("/register").post(authValidator, catchAsync(registerHandler));
+router.route("/login").post(authValidator, catchAsync(loginHandler));
 
 //SPRAWDZIC CZY NA PEWNO DOBRZE WSZYSTKO LOGIKA
 

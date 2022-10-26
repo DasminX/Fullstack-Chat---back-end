@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
+import { ExtendedError } from "../types/types";
+import { validateErrors } from "../utils/catchAsync";
 
 const prisma = new PrismaClient();
 
@@ -15,42 +17,31 @@ export const changeNameHandler = async (
   next: NextFunction
 ) => {
   const validationErrorArr = validationResult(req);
-  if (!validationErrorArr.isEmpty()) {
-    const error: any = new Error("Something went wrong in VALIDATION");
-    error.status = 422;
+  validateErrors(validationErrorArr, "Something went wrong in VALIDATION", 400);
+
+  const { changedName } = req.body as unknown as RequestProfileBodyType;
+
+  const user = await prisma.user.findFirst({
+    where: { id: req.userID },
+  });
+
+  if (!user) {
+    const error: any = new ExtendedError("Not authenticated!", 401);
     return next(error);
   }
 
-  try {
-    const { changedName } = req.body as unknown as RequestProfileBodyType;
+  const updatedUser = await prisma.user.update({
+    data: { username: changedName },
+    where: { id: req.userID },
+  });
 
-    const user = await prisma.user.findFirst({
-      where: { id: req.userID },
-    });
-
-    if (!user) {
-      const error: any = new Error("Not authenticated!");
-      error.status = 400;
-      return next(error);
-    }
-
-    const updatedUser = await prisma.user.update({
-      data: { username: changedName },
-      where: { id: req.userID },
-    });
-
-    res.status(201).json({
-      status: "ok",
-      data: {
-        message: "Username updated successfully!",
-        username: updatedUser.username,
-      },
-    });
-  } catch (err) {
-    const error: any = new Error("Something went wrong! Try again later.");
-    error.status = 500;
-    return next(error);
-  }
+  res.status(201).json({
+    status: "ok",
+    data: {
+      message: "Username updated successfully!",
+      username: updatedUser.username,
+    },
+  });
 };
 
 export const changeLogoHandler = async (
@@ -59,37 +50,26 @@ export const changeLogoHandler = async (
   next: NextFunction
 ) => {
   const validationErrorArr = validationResult(req);
-  if (!validationErrorArr.isEmpty()) {
-    const error: any = new Error("Something went wrong in VALIDATION");
-    error.status = 422;
+  validateErrors(validationErrorArr, "Something went wrong in VALIDATION", 400);
+
+  const { changedLogoUrl } = req.body as unknown as RequestProfileBodyType;
+
+  const user = await prisma.user.findFirst({
+    where: { id: req.userID },
+  });
+
+  if (!user) {
+    const error: any = new ExtendedError("Not authenticated!", 401);
     return next(error);
   }
 
-  try {
-    const { changedLogoUrl } = req.body as unknown as RequestProfileBodyType;
+  await prisma.user.update({
+    data: { userAvatarImgUrl: changedLogoUrl },
+    where: { id: req.userID },
+  });
 
-    const user = await prisma.user.findFirst({
-      where: { id: req.userID },
-    });
-
-    if (!user) {
-      const error: any = new Error("Not authenticated!");
-      error.status = 400;
-      return next(error);
-    }
-
-    await prisma.user.update({
-      data: { userAvatarImgUrl: changedLogoUrl },
-      where: { id: req.userID },
-    });
-
-    res.status(201).json({
-      status: "ok",
-      data: { message: "User avatar logo updated successfully!" },
-    });
-  } catch (err) {
-    const error: any = new Error("Something went wrong! Try again later.");
-    error.status = 500;
-    return next(error);
-  }
+  res.status(201).json({
+    status: "ok",
+    data: { message: "User avatar logo updated successfully!" },
+  });
 };
