@@ -87,6 +87,10 @@ export const enterRoomHandler = async (data: {
 
     if (!room) throw new Error("Something went wrong! Try again later!");
 
+    if (room.activeUsersIDs.indexOf(currentUserID) !== -1) {
+      room.activeUsersIDs.filter((userID) => userID !== currentUserID);
+    }
+
     const updatedRoom = await prisma.room.update({
       where: { name: room.name },
       data: { activeUsersIDs: { set: [...room.activeUsersIDs, user.id] } },
@@ -169,17 +173,16 @@ export const addMessageToRoomDB = async (data: {
   sendByUserID: string;
   sendInRoomID: string;
   textMessage: string;
-  sendDate: string;
 }) => {
   try {
-    const { textMessage, id, sendInRoomID, sendByUserID } = data;
+    const { id, sendByUserID, sendInRoomID, textMessage } = data;
 
     const createdMessage = await prisma.message.create({
       data: {
         id: id.toString(),
-        textMessage,
-        sendByUserID,
-        sendInRoomID,
+        textMessage: textMessage,
+        sendByUserID: sendByUserID,
+        sendInRoomID: sendInRoomID,
       },
     });
 

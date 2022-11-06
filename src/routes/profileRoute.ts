@@ -5,7 +5,6 @@ import {
   changeLogoHandler,
 } from "../controllers/profileController";
 import { check } from "express-validator";
-import { catchAsync } from "../utils/catchAsync";
 
 const changeNameValidator = check("changedName")
   .exists()
@@ -18,10 +17,10 @@ const router = Router();
 // ZROBIC VALIDATOR
 router
   .route("/change-name")
-  .put(isAuthMiddleware, changeNameValidator, catchAsync(changeNameHandler));
+  .put(isAuthMiddleware, changeNameValidator, changeNameHandler);
 router
   .route("/change-logo")
-  .put(isAuthMiddleware, changeLogoValidator, catchAsync(changeLogoHandler));
+  .put(isAuthMiddleware, changeLogoValidator, changeLogoHandler);
 
 //SPRAWDZIC CZY NA PEWNO DOBRZE WSZYSTKO LOGIKA
 

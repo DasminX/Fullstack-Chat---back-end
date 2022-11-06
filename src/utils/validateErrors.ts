@@ -1,12 +1,5 @@
-import { ResolveOptions } from "dns";
 import { NextFunction } from "express";
 import { Result, ValidationError, validationResult } from "express-validator";
-
-export const catchAsync = (fn: any) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    fn(req, res, next).catch(next);
-  };
-};
 
 export const validateErrors = (
   validationErrorArr: Result<ValidationError>,

@@ -80,6 +80,9 @@ const enterRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* (
         });
         if (!room)
             throw new Error("Something went wrong! Try again later!");
+        if (room.activeUsersIDs.indexOf(currentUserID) !== -1) {
+            room.activeUsersIDs.filter((userID) => userID !== currentUserID);
+        }
         const updatedRoom = yield prisma.room.update({
             where: { name: room.name },
             data: { activeUsersIDs: { set: [...room.activeUsersIDs, user.id] } },
@@ -149,13 +152,13 @@ const getRoomMessages = (roomID) => __awaiter(void 0, void 0, void 0, function* 
 exports.getRoomMessages = getRoomMessages;
 const addMessageToRoomDB = (data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { textMessage, id, sendInRoomID, sendByUserID } = data;
+        const { id, sendByUserID, sendInRoomID, textMessage } = data;
         const createdMessage = yield prisma.message.create({
             data: {
                 id: id.toString(),
-                textMessage,
-                sendByUserID,
-                sendInRoomID,
+                textMessage: textMessage,
+                sendByUserID: sendByUserID,
+                sendInRoomID: sendInRoomID,
             },
         });
         if (!createdMessage)
