@@ -6,6 +6,7 @@ import { ExtendedError } from "../types/types";
 import { validationResult } from "express-validator";
 import { validateErrors } from "../utils/validateErrors";
 import { authCheckIfUserExists } from "../utils/AuthControllerHelpers";
+import { catchAsync } from "../utils/catchAsync";
 
 type RequestAuthBodyType = {
   login: string;
@@ -14,12 +15,8 @@ type RequestAuthBodyType = {
 
 const prisma = new PrismaClient();
 
-export const registerHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
+export const registerHandler = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
     const validationErrorArr = validationResult(req);
     validateErrors(
       validationErrorArr,
@@ -52,17 +49,11 @@ export const registerHandler = async (
       status: "ok",
       data: { message: "User registered successfully!" },
     });
-  } catch (e) {
-    next(e);
   }
-};
+);
 
-export const loginHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
+export const loginHandler = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
     const { login, password } = req.body as unknown as RequestAuthBodyType;
 
     const user = await authCheckIfUserExists(next, login, "LOGIN");
@@ -92,7 +83,5 @@ export const loginHandler = async (
       status: "ok",
       data: { message: "Logged in successfully!", token, user },
     });
-  } catch (e) {
-    next(e);
   }
-};
+);

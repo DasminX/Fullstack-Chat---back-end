@@ -1,11 +1,9 @@
-import { NextFunction } from "express";
-import { Result, ValidationError, validationResult } from "express-validator";
-import { ExtendedError } from "../types/types";
+import { ExtendedError, validateErrorsFuncType } from "../types/types";
 
-export const validateErrors = (
-  validationErrorArr: Result<ValidationError>,
-  errorMsg: string,
-  next: NextFunction
+export const validateErrors: validateErrorsFuncType = (
+  validationErrorArr,
+  errorMsg,
+  next
 ) => {
   if (!validationErrorArr.isEmpty()) {
     next(new ExtendedError(errorMsg, 400));

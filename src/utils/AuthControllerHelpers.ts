@@ -1,14 +1,12 @@
 import { PrismaClient } from "@prisma/client";
-import { NextFunction } from "express";
-import { ExtendedError } from "../types/types";
-import { Response } from "express";
+import { authCheckIfUsersExistsFuncType, ExtendedError } from "../types/types";
 
 const prisma = new PrismaClient();
 
-export const authCheckIfUserExists = async (
-  next: NextFunction,
-  login: string,
-  requestType: "LOGIN" | "REGISTER"
+export const authCheckIfUserExists: authCheckIfUsersExistsFuncType = async (
+  next,
+  login,
+  requestType
 ) => {
   const user = await prisma.user.findFirst({
     where: { login },

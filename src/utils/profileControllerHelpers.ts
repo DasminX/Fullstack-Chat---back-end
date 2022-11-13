@@ -1,11 +1,16 @@
 import { PrismaClient } from "@prisma/client";
-import { NextFunction } from "express";
-import { ExtendedError } from "../types/types";
-import { Response } from "express";
+import {
+  checkIfUserExistsFuncType,
+  ExtendedError,
+  updateUserFuncType,
+} from "../types/types";
 
 const prisma = new PrismaClient();
 
-export const checkIfUserExists = async (next: NextFunction, userID: string) => {
+export const checkIfUserExists: checkIfUserExistsFuncType = async (
+  next,
+  userID
+) => {
   const user = await prisma.user.findFirst({
     where: { id: userID },
     select: { id: true },
@@ -18,12 +23,12 @@ export const checkIfUserExists = async (next: NextFunction, userID: string) => {
   }
 };
 
-export const updateUser = async (
-  res: Response,
-  next: NextFunction,
-  userID: string,
-  dataToBeChanged: any,
-  keyWord: string
+export const updateUser: updateUserFuncType = async (
+  res,
+  next,
+  userID,
+  dataToBeChanged,
+  keyWord
 ) => {
   const updatedUser = await prisma.user.update({
     data: dataToBeChanged,

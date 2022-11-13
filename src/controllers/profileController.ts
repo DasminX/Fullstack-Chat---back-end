@@ -1,17 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
+import { catchAsync } from "../utils/catchAsync";
 import {
   checkIfUserExists,
   updateUser,
 } from "../utils/profileControllerHelpers";
 import { validateErrors } from "../utils/validateErrors";
 
-export const changeNameHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
+export const changeNameHandler = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
     const validationErrorArr = validationResult(req);
     validateErrors(
       validationErrorArr,
@@ -27,17 +24,11 @@ export const changeNameHandler = async (
       { username: req.body.changedName },
       "Username"
     );
-  } catch (e) {
-    next(e);
   }
-};
+);
 
-export const changeLogoHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
+export const changeLogoHandler = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
     const validationErrorArr = validationResult(req);
     validateErrors(validationErrorArr, "Wrong logo URL. Try again.", next);
 
@@ -49,7 +40,5 @@ export const changeLogoHandler = async (
       { userAvatarImgUrl: req.body.changedLogoUrl },
       "User avatar logo"
     );
-  } catch (e) {
-    next(e);
   }
-};
+);
