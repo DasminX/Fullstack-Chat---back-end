@@ -9,11 +9,3 @@ class ExtendedError extends Error {
     }
 }
 exports.ExtendedError = ExtendedError;
-/*
-export class ExtendedError extends Error {
-  constructor(message,statusCode) {
-    super(message)
-    this.statusCode = statusCode
-  }
-}
- */

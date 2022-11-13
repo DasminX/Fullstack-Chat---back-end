@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { ExtendedError } from "../types/types";
 import { validationResult } from "express-validator";
 import { validateErrors } from "../utils/validateErrors";
+import { authCheckIfUserExists } from "../utils/AuthControllerHelpers";
 
 type RequestAuthBodyType = {
   login: string;
@@ -23,24 +24,14 @@ export const registerHandler = async (
     validateErrors(
       validationErrorArr,
       "Login has to be at least 8 characters long and password should contain of 8 characters (at least 1 uppercase, at least 1 number)",
-      422
+      next
     );
 
     const { login, password } = req.body as unknown as RequestAuthBodyType;
 
-    const foundUser = await prisma.user.findFirst({
-      where: { login },
-    });
+    await authCheckIfUserExists(next, login, "REGISTER");
 
-    if (foundUser) {
-      const error = new ExtendedError(
-        "User with that login already exists!",
-        409
-      );
-      return next(error);
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 14);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await prisma.user.create({
       data: {
@@ -52,11 +43,9 @@ export const registerHandler = async (
     });
 
     if (!user) {
-      const error = new ExtendedError(
-        "Something went wrong! Try again later.",
-        500
+      return next(
+        new ExtendedError("Something went wrong! Try again later.", 500)
       );
-      return next(error);
     }
 
     return res.status(200).json({
@@ -76,32 +65,27 @@ export const loginHandler = async (
   try {
     const { login, password } = req.body as unknown as RequestAuthBodyType;
 
-    const user = await prisma.user.findFirst({ where: { login: login } });
+    const user = await authCheckIfUserExists(next, login, "LOGIN");
 
-    if (!user) {
-      const error = new ExtendedError("User with that login not found!", 400);
-      return next(error);
-    }
-
-    // no validation
     if (login !== "admin" && login !== "add") {
       const isPasswordMatching = await bcrypt.compare(
         password,
-        user.hashedPassword
+        user!.hashedPassword
       );
 
       if (!isPasswordMatching) {
-        const error: any = new ExtendedError(
-          "You entered a wrong password. Try again please.",
-          401
+        return next(
+          new ExtendedError(
+            "You entered a wrong login or password. Try again please.",
+            401
+          )
         );
-        return next(error);
       }
     }
     const token = jwt.sign(
-      { login: user.login, userID: user.id },
-      "kopamatakawasupersecretkeyhaha",
-      { expiresIn: "1h" }
+      { login: user!.login, userID: user!.id },
+      process.env.SECRET_TOKEN as string,
+      { expiresIn: process.env.SECRET_TOKEN_EXPIRES_IN as string }
     );
 
     res.status(200).json({

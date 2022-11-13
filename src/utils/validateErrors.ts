@@ -1,14 +1,13 @@
 import { NextFunction } from "express";
 import { Result, ValidationError, validationResult } from "express-validator";
+import { ExtendedError } from "../types/types";
 
 export const validateErrors = (
   validationErrorArr: Result<ValidationError>,
   errorMsg: string,
-  statusCode: number
+  next: NextFunction
 ) => {
   if (!validationErrorArr.isEmpty()) {
-    const error: any = new Error(errorMsg);
-    error.statusCode = statusCode;
-    throw error;
+    next(new ExtendedError(errorMsg, 400));
   }
 };

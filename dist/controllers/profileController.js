@@ -10,34 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.changeLogoHandler = exports.changeNameHandler = void 0;
-const client_1 = require("@prisma/client");
 const express_validator_1 = require("express-validator");
-const types_1 = require("../types/types");
+const profileControllerHelpers_1 = require("../utils/profileControllerHelpers");
 const validateErrors_1 = require("../utils/validateErrors");
-const prisma = new client_1.PrismaClient();
 const changeNameHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const validationErrorArr = (0, express_validator_1.validationResult)(req);
-        (0, validateErrors_1.validateErrors)(validationErrorArr, "Something went wrong in VALIDATION", 400);
-        const { changedName } = req.body;
-        const user = yield prisma.user.findFirst({
-            where: { id: req.userID },
-        });
-        if (!user) {
-            const error = new types_1.ExtendedError("Not authenticated!", 401);
-            return next(error);
-        }
-        const updatedUser = yield prisma.user.update({
-            data: { username: changedName },
-            where: { id: req.userID },
-        });
-        res.status(201).json({
-            status: "ok",
-            data: {
-                message: "Username updated successfully!",
-                username: updatedUser.username,
-            },
-        });
+        (0, validateErrors_1.validateErrors)(validationErrorArr, "Name must consist of 3-12 characters.", next);
+        yield (0, profileControllerHelpers_1.checkIfUserExists)(next, req.userID);
+        yield (0, profileControllerHelpers_1.updateUser)(res, next, req.userID, { username: req.body.changedName }, "Username");
     }
     catch (e) {
         next(e);
@@ -47,23 +28,9 @@ exports.changeNameHandler = changeNameHandler;
 const changeLogoHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const validationErrorArr = (0, express_validator_1.validationResult)(req);
-        (0, validateErrors_1.validateErrors)(validationErrorArr, "Something went wrong in VALIDATION", 400);
-        const { changedLogoUrl } = req.body;
-        const user = yield prisma.user.findFirst({
-            where: { id: req.userID },
-        });
-        if (!user) {
-            const error = new types_1.ExtendedError("Not authenticated!", 401);
-            return next(error);
-        }
-        yield prisma.user.update({
-            data: { userAvatarImgUrl: changedLogoUrl },
-            where: { id: req.userID },
-        });
-        res.status(201).json({
-            status: "ok",
-            data: { message: "User avatar logo updated successfully!" },
-        });
+        (0, validateErrors_1.validateErrors)(validationErrorArr, "Wrong logo URL. Try again.", next);
+        yield (0, profileControllerHelpers_1.checkIfUserExists)(next, req.userID);
+        yield (0, profileControllerHelpers_1.updateUser)(res, next, req.userID, { userAvatarImgUrl: req.body.changedLogoUrl }, "User avatar logo");
     }
     catch (e) {
         next(e);

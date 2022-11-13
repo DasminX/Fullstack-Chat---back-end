@@ -21,9 +21,7 @@ export const getIoServer = (server: any) => {
     socket.on("joiningRoom", async (data) => {
       // PRIVATE ROOM APP V2
       // const roomPrivacy = await checkRoomHasAPassword(data.currentRoomID);
-
       // if (!roomPrivacy) return;
-
       // if (!roomPrivacy.isPrivate) {
       const joiningRoomRes = await enterRoomHandler(data);
       if (!joiningRoomRes) return;

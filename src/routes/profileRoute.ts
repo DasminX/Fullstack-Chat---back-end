@@ -1,10 +1,10 @@
 import { Router } from "express";
+import { check } from "express-validator";
 import { isAuthMiddleware } from "../middleware/is-auth";
 import {
   changeNameHandler,
   changeLogoHandler,
 } from "../controllers/profileController";
-import { check } from "express-validator";
 
 const changeNameValidator = check("changedName")
   .exists()
@@ -14,7 +14,6 @@ const changeLogoValidator = check("changedLogoUrl").exists();
 
 const router = Router();
 
-// ZROBIC VALIDATOR
 router
   .route("/change-name")
   .put(isAuthMiddleware, changeNameValidator, changeNameHandler);

@@ -16,7 +16,7 @@ const getRoomsHandler = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const rooms = yield prisma.room.findMany();
         if (rooms.length === 0) {
-            return "No rooms found. Create the first one!";
+            return [];
         }
         if (!rooms) {
             throw new Error("Something went wrong! Try again later.");
@@ -24,7 +24,7 @@ const getRoomsHandler = () => __awaiter(void 0, void 0, void 0, function* () {
         return rooms;
     }
     catch (err) {
-        console.log(err);
+        throw err;
     }
 });
 exports.getRoomsHandler = getRoomsHandler;
@@ -46,7 +46,7 @@ const createRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* 
         return allRooms;
     }
     catch (err) {
-        console.log(err);
+        throw err;
     }
 });
 exports.createRoomHandler = createRoomHandler;
@@ -61,7 +61,7 @@ const checkRoomHasAPassword = (clickedRoomID) => __awaiter(void 0, void 0, void 
         return { password: room.roomPassword, isPrivate: room.isPrivate };
     }
     catch (err) {
-        console.log(err);
+        throw err;
     }
 });
 exports.checkRoomHasAPassword = checkRoomHasAPassword;
@@ -90,7 +90,7 @@ const enterRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* (
         return { joiningRoom: updatedRoom, username: user.username };
     }
     catch (err) {
-        console.log(err);
+        throw err;
     }
 });
 exports.enterRoomHandler = enterRoomHandler;
@@ -116,7 +116,7 @@ const leaveRoomHandler = (data) => __awaiter(void 0, void 0, void 0, function* (
         return { leavingRoom, userWhoLeft };
     }
     catch (err) {
-        console.log(err);
+        throw err;
     }
 });
 exports.leaveRoomHandler = leaveRoomHandler;
@@ -145,7 +145,7 @@ const getRoomMessages = (roomID) => __awaiter(void 0, void 0, void 0, function* 
         return newMsgArr;
     }
     catch (err) {
-        console.log(err);
+        throw err;
     }
     // get room messages searching by room ID
 });
@@ -166,7 +166,7 @@ const addMessageToRoomDB = (data) => __awaiter(void 0, void 0, void 0, function*
         return createdMessage;
     }
     catch (err) {
-        console.log(err);
+        throw err;
     }
 });
 exports.addMessageToRoomDB = addMessageToRoomDB;

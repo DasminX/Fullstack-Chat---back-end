@@ -1,15 +1,10 @@
-import { PrismaClient } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
-import { ExtendedError } from "../types/types";
+import {
+  checkIfUserExists,
+  updateUser,
+} from "../utils/profileControllerHelpers";
 import { validateErrors } from "../utils/validateErrors";
-
-const prisma = new PrismaClient();
-
-type RequestProfileBodyType = {
-  changedName?: string;
-  changedLogoUrl?: string;
-};
 
 export const changeNameHandler = async (
   req: Request,
@@ -20,33 +15,18 @@ export const changeNameHandler = async (
     const validationErrorArr = validationResult(req);
     validateErrors(
       validationErrorArr,
-      "Something went wrong in VALIDATION",
-      400
+      "Name must consist of 3-12 characters.",
+      next
     );
 
-    const { changedName } = req.body as unknown as RequestProfileBodyType;
-
-    const user = await prisma.user.findFirst({
-      where: { id: req.userID },
-    });
-
-    if (!user) {
-      const error: any = new ExtendedError("Not authenticated!", 401);
-      return next(error);
-    }
-
-    const updatedUser = await prisma.user.update({
-      data: { username: changedName },
-      where: { id: req.userID },
-    });
-
-    res.status(201).json({
-      status: "ok",
-      data: {
-        message: "Username updated successfully!",
-        username: updatedUser.username,
-      },
-    });
+    await checkIfUserExists(next, req.userID);
+    await updateUser(
+      res,
+      next,
+      req.userID,
+      { username: req.body.changedName },
+      "Username"
+    );
   } catch (e) {
     next(e);
   }
@@ -59,32 +39,16 @@ export const changeLogoHandler = async (
 ) => {
   try {
     const validationErrorArr = validationResult(req);
-    validateErrors(
-      validationErrorArr,
-      "Something went wrong in VALIDATION",
-      400
+    validateErrors(validationErrorArr, "Wrong logo URL. Try again.", next);
+
+    await checkIfUserExists(next, req.userID);
+    await updateUser(
+      res,
+      next,
+      req.userID,
+      { userAvatarImgUrl: req.body.changedLogoUrl },
+      "User avatar logo"
     );
-
-    const { changedLogoUrl } = req.body as unknown as RequestProfileBodyType;
-
-    const user = await prisma.user.findFirst({
-      where: { id: req.userID },
-    });
-
-    if (!user) {
-      const error: any = new ExtendedError("Not authenticated!", 401);
-      return next(error);
-    }
-
-    await prisma.user.update({
-      data: { userAvatarImgUrl: changedLogoUrl },
-      where: { id: req.userID },
-    });
-
-    res.status(201).json({
-      status: "ok",
-      data: { message: "User avatar logo updated successfully!" },
-    });
   } catch (e) {
     next(e);
   }

@@ -7,8 +7,8 @@ const router = Router();
 const authValidator = [
   check("login").trim().isLength({ min: 8, max: 16 }),
   check("password")
-    .isLength({ min: 8 })
-    .isStrongPassword({ minLength: 8, minUppercase: 1, minNumbers: 1 }),
+    .isLength({ min: 8, max: 20 })
+    .isStrongPassword({ minNumbers: 1 }),
 ];
 
 router.route("/register").post(authValidator, registerHandler);

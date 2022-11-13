@@ -14,7 +14,10 @@ const ioInstance_1 = require("./io/ioInstance");
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)());
-app.use(express_1.default.urlencoded({ extended: true }));
+app.use(express_1.default.urlencoded({
+    extended: true,
+    limit: process.env.EXPRESS_URLENCODED_LIMIT,
+}));
 app.use(express_1.default.json());
 // socket.io
 // socket.io
@@ -24,18 +27,12 @@ const io = (0, ioInstance_1.getIoServer)(server);
 app.use("/api/auth", authRoute_1.default);
 app.use("/api/profile", profileRoute_1.default);
 app.use((error, _req, res, _next) => {
-    const { message } = error;
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
         status: "error",
         data: {
-            message: message,
+            message: error.message,
+            stack: error.stack,
         },
     });
 });
-// SPRAWDZIC SCHEMAT PRISMY
-// ZROBIC UNIWERSALNY ERROR HANDLING
-// ZROBIC UNIWERSALNY ERROR HANDLING
-// ZROBIC UNIWERSALNY ERROR HANDLING
-// ZROBIC UNIWERSALNY ERROR HANDLING
-// ZROBIC UNIWERSALNY ERROR HANDLING
 server.listen(process.env.PORT || 3008);

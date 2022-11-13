@@ -8,7 +8,7 @@ export const getRoomsHandler = async () => {
     const rooms = await prisma.room.findMany();
 
     if (rooms.length === 0) {
-      return "No rooms found. Create the first one!";
+      return [];
     }
 
     if (!rooms) {
@@ -17,7 +17,7 @@ export const getRoomsHandler = async () => {
 
     return rooms;
   } catch (err) {
-    console.log(err);
+    throw err;
   }
 };
 
@@ -47,7 +47,7 @@ export const createRoomHandler = async (data: CreateRoomType) => {
 
     return allRooms;
   } catch (err) {
-    console.log(err);
+    throw err;
   }
 };
 
@@ -62,7 +62,7 @@ export const checkRoomHasAPassword = async (clickedRoomID: string) => {
 
     return { password: room.roomPassword, isPrivate: room.isPrivate };
   } catch (err) {
-    console.log(err);
+    throw err;
   }
 };
 
@@ -98,7 +98,7 @@ export const enterRoomHandler = async (data: {
 
     return { joiningRoom: updatedRoom, username: user.username };
   } catch (err) {
-    console.log(err);
+    throw err;
   }
 };
 
@@ -133,7 +133,7 @@ export const leaveRoomHandler = async (data: {
 
     return { leavingRoom, userWhoLeft };
   } catch (err) {
-    console.log(err);
+    throw err;
   }
 };
 
@@ -163,7 +163,7 @@ export const getRoomMessages = async (roomID: string) => {
 
     return newMsgArr;
   } catch (err) {
-    console.log(err);
+    throw err;
   }
   // get room messages searching by room ID
 };
@@ -191,6 +191,6 @@ export const addMessageToRoomDB = async (data: {
 
     return createdMessage;
   } catch (err) {
-    console.log(err);
+    throw err;
   }
 };

@@ -14,12 +14,3 @@ export class ExtendedError extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 }
-
-/* 
-export class ExtendedError extends Error {
-  constructor(message,statusCode) {
-    super(message)
-    this.statusCode = statusCode
-  }
-}
- */

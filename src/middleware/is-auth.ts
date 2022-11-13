@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import { ExtendedError } from "../types/types";
 
 export const isAuthMiddleware = (
   req: Request,
@@ -9,33 +10,30 @@ export const isAuthMiddleware = (
   const authHeader = req.get("Authorization");
 
   if (!authHeader) {
-    const error: any = new Error("Not authenticated!");
-    error.status = 401;
-    return next(error);
+    return next(new ExtendedError("Not authenticated!", 403));
   }
 
   const token = authHeader.split(" ")[1];
 
   let decodedToken;
   try {
-    decodedToken = jwt.verify(token, "kopamatakawasupersecretkeyhaha");
+    decodedToken = jwt.verify(token, process.env.SECRET_TOKEN as string);
   } catch (err) {
-    const error: any = new Error("Something went wrong!");
-    error.status = 500;
-    return next(error);
+    next(new ExtendedError("Something went wrong!", 500));
   }
 
-  if (!decodedToken) {
-    const error: any = new Error("Not authenticated!");
-    error.status = 401;
-    return next(error);
+  if (
+    !decodedToken ||
+    typeof decodedToken === "string" ||
+    ("exp" in decodedToken &&
+      "iat" in decodedToken &&
+      decodedToken!.iat > decodedToken!.exp)
+  ) {
+    return next(new ExtendedError("Not authenticated!", 403));
   }
 
-  if (typeof decodedToken === "string") {
-    req.userID = decodedToken;
-  } else {
-    req.userID = decodedToken.userID;
-  }
+  req.userID = decodedToken.userID;
 
+  // po zmianie hasla relog
   next();
 };
