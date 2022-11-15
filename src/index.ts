@@ -8,13 +8,12 @@ import authRouter from "./routes/authRoute";
 import profileRouter from "./routes/profileRoute";
 import { getIoServer } from "./io/ioInstance";
 import { ExtendedError } from "./types/types";
-import xss from "xss";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 
 app.use(helmet());
 app.use(cors());
-app.use(xss("<p>Something went wrong!</p>")); // ?
 app.use(
   express.urlencoded({
     extended: true,
@@ -23,6 +22,13 @@ app.use(
 );
 app.use(express.json());
 app.use(morgan("dev"));
+
+const limiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  message: "You exceeded limit of requests per hour. Please try again later.",
+});
+app.use(limiter);
 
 // socket.io
 const server = http.createServer(app);

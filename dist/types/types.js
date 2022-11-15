@@ -9,3 +9,5 @@ class ExtendedError extends Error {
     }
 }
 exports.ExtendedError = ExtendedError;
+// IO FUNC
+// IO FUNC

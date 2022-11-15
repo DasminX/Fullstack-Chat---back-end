@@ -15,25 +15,19 @@ export const isAuthMiddleware = (
 
   const token = authHeader.split(" ")[1];
 
-  let decodedToken;
+  let decodedToken: jwt.JwtPayload | string;
   try {
     decodedToken = jwt.verify(token, process.env.SECRET_TOKEN as string);
+    if (typeof decodedToken == "object" && decodedToken != null) {
+      if (decodedToken.iat && decodedToken.exp) {
+        if (decodedToken.exp < decodedToken.iat)
+          return next(new ExtendedError("Not authenticated!", 403));
+      }
+      req.userID = decodedToken.userID;
+    } else throw new ExtendedError("Something went wrong!", 403);
+
+    next();
   } catch (err) {
     next(new ExtendedError("Something went wrong!", 500));
   }
-
-  if (
-    !decodedToken ||
-    typeof decodedToken === "string" ||
-    ("exp" in decodedToken &&
-      "iat" in decodedToken &&
-      decodedToken!.iat > decodedToken!.exp)
-  ) {
-    return next(new ExtendedError("Not authenticated!", 403));
-  }
-
-  req.userID = decodedToken.userID;
-
-  // po zmianie hasla relog
-  next();
 };

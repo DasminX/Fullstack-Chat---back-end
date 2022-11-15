@@ -15,19 +15,19 @@ const isAuthMiddleware = (req, _res, next) => {
     let decodedToken;
     try {
         decodedToken = jsonwebtoken_1.default.verify(token, process.env.SECRET_TOKEN);
+        if (typeof decodedToken == "object" && decodedToken != null) {
+            if (decodedToken.iat && decodedToken.exp) {
+                if (decodedToken.exp < decodedToken.iat)
+                    return next(new types_1.ExtendedError("Not authenticated!", 403));
+            }
+            req.userID = decodedToken.userID;
+        }
+        else
+            throw new types_1.ExtendedError("Something went wrong!", 403);
+        next();
     }
     catch (err) {
         next(new types_1.ExtendedError("Something went wrong!", 500));
     }
-    if (!decodedToken ||
-        typeof decodedToken === "string" ||
-        ("exp" in decodedToken &&
-            "iat" in decodedToken &&
-            decodedToken.iat > decodedToken.exp)) {
-        return next(new types_1.ExtendedError("Not authenticated!", 403));
-    }
-    req.userID = decodedToken.userID;
-    // po zmianie hasla relog
-    next();
 };
 exports.isAuthMiddleware = isAuthMiddleware;

@@ -9,18 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateErrors = exports.catchAsync = void 0;
-const catchAsync = (fn) => __awaiter(void 0, void 0, void 0, function* () {
+exports.catchAsync = void 0;
+const catchAsync = (fn) => {
     return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        fn(req, res).catch(next);
+        fn(req, res, next).catch(next);
     });
-});
-exports.catchAsync = catchAsync;
-const validateErrors = (validationErrorArr, errorMsg, statusCode) => {
-    if (!validationErrorArr.isEmpty()) {
-        const error = new Error(errorMsg);
-        error.statusCode = statusCode;
-        throw error;
-    }
 };
-exports.validateErrors = validateErrors;
+exports.catchAsync = catchAsync;

@@ -20,53 +20,42 @@ const types_1 = require("../types/types");
 const express_validator_1 = require("express-validator");
 const validateErrors_1 = require("../utils/validateErrors");
 const AuthControllerHelpers_1 = require("../utils/AuthControllerHelpers");
+const catchAsync_1 = require("../utils/catchAsync");
 const prisma = new client_1.PrismaClient();
-const registerHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const validationErrorArr = (0, express_validator_1.validationResult)(req);
-        (0, validateErrors_1.validateErrors)(validationErrorArr, "Login has to be at least 8 characters long and password should contain of 8 characters (at least 1 uppercase, at least 1 number)", next);
-        const { login, password } = req.body;
-        yield (0, AuthControllerHelpers_1.authCheckIfUserExists)(next, login, "REGISTER");
-        const hashedPassword = yield bcryptjs_1.default.hash(password, 12);
-        const user = yield prisma.user.create({
-            data: {
-                login,
-                hashedPassword,
-                username: `User${Math.random().toString().slice(2, 10)}`,
-                userAvatarImgUrl: "https://www.w3schools.com/howto/img_avatar.png",
-            },
-        });
-        if (!user) {
-            return next(new types_1.ExtendedError("Something went wrong! Try again later.", 500));
+exports.registerHandler = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const validationErrorArr = (0, express_validator_1.validationResult)(req);
+    (0, validateErrors_1.validateErrors)(validationErrorArr, "Login has to be at least 8 characters long and password should contain of 8 characters (at least 1 uppercase, at least 1 number)", next);
+    const { login, password } = req.body;
+    yield (0, AuthControllerHelpers_1.authCheckIfUserExists)(next, login, "REGISTER");
+    const hashedPassword = yield bcryptjs_1.default.hash(password, 12);
+    const user = yield prisma.user.create({
+        data: {
+            login,
+            hashedPassword,
+            username: `User${Math.random().toString().slice(2, 10)}`,
+            userAvatarImgUrl: "https://www.w3schools.com/howto/img_avatar.png",
+        },
+    });
+    if (!user) {
+        return next(new types_1.ExtendedError("Something went wrong! Try again later.", 500));
+    }
+    return res.status(200).json({
+        status: "ok",
+        data: { message: "User registered successfully!" },
+    });
+}));
+exports.loginHandler = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { login, password } = req.body;
+    const user = yield (0, AuthControllerHelpers_1.authCheckIfUserExists)(next, login, "LOGIN");
+    if (login !== "admin" && login !== "add") {
+        const isPasswordMatching = yield bcryptjs_1.default.compare(password, user.hashedPassword);
+        if (!isPasswordMatching) {
+            return next(new types_1.ExtendedError("You entered a wrong login or password. Try again please.", 401));
         }
-        return res.status(200).json({
-            status: "ok",
-            data: { message: "User registered successfully!" },
-        });
     }
-    catch (e) {
-        next(e);
-    }
-});
-exports.registerHandler = registerHandler;
-const loginHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { login, password } = req.body;
-        const user = yield (0, AuthControllerHelpers_1.authCheckIfUserExists)(next, login, "LOGIN");
-        if (login !== "admin" && login !== "add") {
-            const isPasswordMatching = yield bcryptjs_1.default.compare(password, user.hashedPassword);
-            if (!isPasswordMatching) {
-                return next(new types_1.ExtendedError("You entered a wrong login or password. Try again please.", 401));
-            }
-        }
-        const token = jsonwebtoken_1.default.sign({ login: user.login, userID: user.id }, process.env.SECRET_TOKEN, { expiresIn: process.env.SECRET_TOKEN_EXPIRES_IN });
-        res.status(200).json({
-            status: "ok",
-            data: { message: "Logged in successfully!", token, user },
-        });
-    }
-    catch (e) {
-        next(e);
-    }
-});
-exports.loginHandler = loginHandler;
+    const token = jsonwebtoken_1.default.sign({ login: user.login, userID: user.id }, process.env.SECRET_TOKEN, { expiresIn: process.env.SECRET_TOKEN_EXPIRES_IN });
+    res.status(200).json({
+        status: "ok",
+        data: { message: "Logged in successfully!", token, user },
+    });
+}));
